@@ -84,6 +84,14 @@
     {
       "name": "Health",
       "description": "Health check endpoints for monitoring server status"
+    },
+    {
+      "name": "Authentication",
+      "description": "User authentication and JWT token management"
+    },
+    {
+      "name": "Users",
+      "description": "User management operations (Admin only)"
     }
   ]
 } 

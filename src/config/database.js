@@ -1,3 +1,5 @@
+const { Sequelize } = require('sequelize');
+
 const config = {
   development: {
     host: process.env.DB_HOST || 'localhost',
@@ -5,8 +7,20 @@ const config = {
     database: process.env.DB_NAME || 'maruti_db',
     username: process.env.DB_USER || 'maruti_user',
     password: process.env.DB_PASSWORD || 'your_password',
-    dialect: 'postgres', // or mysql, sqlite, etc.
+    dialect: 'postgres',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    define: {
+      timestamps: true,
+      underscored: false,
+      underscoredAll: false,
+      freezeTableName: false,
+    },
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
   },
   test: {
     host: process.env.DB_HOST || 'localhost',
@@ -16,6 +30,12 @@ const config = {
     password: process.env.DB_PASSWORD || 'your_password',
     dialect: 'postgres',
     logging: false,
+    define: {
+      timestamps: true,
+      underscored: false,
+      underscoredAll: false,
+      freezeTableName: false,
+    },
   },
   production: {
     host: process.env.DB_HOST,
@@ -25,6 +45,12 @@ const config = {
     password: process.env.DB_PASSWORD,
     dialect: 'postgres',
     logging: false,
+    define: {
+      timestamps: true,
+      underscored: false,
+      underscoredAll: false,
+      freezeTableName: false,
+    },
     pool: {
       max: 20,
       min: 5,
@@ -34,4 +60,10 @@ const config = {
   },
 };
 
-module.exports = config; 
+const environment = process.env.NODE_ENV || 'development';
+const sequelize = new Sequelize(config[environment]);
+
+module.exports = {
+  sequelize,
+  config,
+};

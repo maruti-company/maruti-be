@@ -9,4 +9,4 @@ router.get('/', healthCheck);
 // Detailed health check
 router.get('/detailed', detailedHealthCheck);
 
-module.exports = router; 
+module.exports = router;

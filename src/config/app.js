@@ -11,6 +11,8 @@ const notFound = require('../middleware/notFound');
 
 // Import routes
 const healthRoutes = require('../routes/health');
+const authRoutes = require('../routes/auth');
+const userRoutes = require('../routes/users');
 
 const createApp = () => {
   const app = express();
@@ -19,25 +21,29 @@ const createApp = () => {
   app.set('trust proxy', 1);
 
   // Security middleware
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https:"],
-        scriptSrc: ["'self'"],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          scriptSrc: ["'self'"],
+        },
       },
-    },
-  }));
+    })
+  );
 
   // CORS configuration
-  app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  }));
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    })
+  );
 
   // Logging middleware
   if (process.env.NODE_ENV === 'development') {
@@ -51,18 +57,22 @@ const createApp = () => {
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
   // API documentation
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-    explorer: true,
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Maruti API Documentation',
-  }));
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(specs, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Maruti API Documentation',
+    })
+  );
 
   // Health check endpoint (before API prefix)
   app.use('/health', healthRoutes);
 
   // API routes with prefix
   const apiPrefix = process.env.API_PREFIX || '/api/v1';
-  
+
   // Welcome route
   app.get('/', (req, res) => {
     res.json({
@@ -72,12 +82,16 @@ const createApp = () => {
       documentation: '/api-docs',
       health: '/health',
       api: apiPrefix,
+      endpoints: {
+        auth: `${apiPrefix}/auth`,
+        users: `${apiPrefix}/users`,
+      },
     });
   });
 
-  // API routes will be added here as we develop them
-  // app.use(`${apiPrefix}/users`, userRoutes);
-  // app.use(`${apiPrefix}/auth`, authRoutes);
+  // API routes
+  app.use(`${apiPrefix}/auth`, authRoutes);
+  app.use(`${apiPrefix}/users`, userRoutes);
 
   // Error handling middleware (must be last)
   app.use(notFound);
@@ -86,4 +100,4 @@ const createApp = () => {
   return app;
 };
 
-module.exports = createApp; 
+module.exports = createApp;

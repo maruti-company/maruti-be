@@ -1,118 +1,102 @@
 # Maruti Backend API
 
-A robust, scalable Node.js Express backend API with comprehensive documentation, linting, formatting, and best practices.
+A robust Node.js Express API built with best practices, featuring user authentication, role-based access control, and comprehensive documentation.
 
 ## 🚀 Features
 
-- **Modern Architecture**: Clean, modular folder structure following industry best practices
-- **API Documentation**: Auto-generated Swagger/OpenAPI documentation
-- **Code Quality**: ESLint + Prettier for consistent code formatting
-- **Security**: Helmet.js for security headers, CORS configuration
-- **Health Monitoring**: Comprehensive health check endpoints
-- **Error Handling**: Centralized error handling with detailed logging
-- **Environment Configuration**: Flexible environment-based configuration
-- **Development Tools**: Hot reload with Nodemon
+- **Express.js Framework** - Fast, minimal web framework
+- **PostgreSQL Database** - Reliable relational database with Sequelize ORM
+- **User Authentication** - JWT-based authentication system
+- **Role-Based Access** - Admin and Employee roles with proper authorization
+- **Input Validation** - Comprehensive request validation using Joi
+- **Security First** - Helmet, CORS, and other security middleware
+- **API Documentation** - Interactive Swagger/OpenAPI documentation
+- **Code Quality** - ESLint and Prettier for consistent code formatting
+- **Error Handling** - Centralized error handling middleware
+- **Environment Management** - Secure environment variable handling
+- **Health Monitoring** - Health check endpoints for system monitoring
 
 ## 📁 Project Structure
 
 ```
 maruti-be/
 ├── src/
-│   ├── config/          # Configuration files
-│   │   ├── app.js       # Express app configuration
-│   │   ├── database.js  # Database configuration
-│   │   └── swagger.js   # Swagger documentation config
-│   ├── controllers/     # Route controllers
-│   │   └── healthController.js
-│   ├── middleware/      # Custom middleware
-│   │   ├── errorHandler.js
-│   │   └── notFound.js
-│   ├── models/          # Data models (to be added)
-│   ├── routes/          # API routes
-│   │   └── health.js
-│   ├── services/        # Business logic services (to be added)
-│   ├── utils/           # Utility functions (to be added)
-│   ├── validators/      # Input validation (to be added)
-│   ├── docs/            # Additional documentation
-│   └── server.js        # Main server entry point
-├── tests/
-│   ├── unit/           # Unit tests (to be added)
-│   └── integration/    # Integration tests (to be added)
-├── logs/               # Application logs
-├── .env.example        # Environment variables template
-├── .eslintrc.js        # ESLint configuration
-├── .prettierrc         # Prettier configuration
-├── .prettierignore     # Prettier ignore rules
-├── .gitignore          # Git ignore rules
-└── package.json        # Project dependencies and scripts
+│   ├── config/
+│   │   ├── app.js              # Express app configuration
+│   │   ├── config.js           # Sequelize database configuration
+│   │   ├── database.js         # Database connection setup
+│   │   └── swagger.js          # Swagger documentation setup
+│   ├── controllers/
+│   │   ├── authController.js   # Authentication logic
+│   │   ├── healthController.js # Health check handlers
+│   │   └── userController.js   # User management logic
+│   ├── docs/                   # Modular Swagger documentation
+│   │   ├── auth.swagger.json   # Authentication endpoints docs
+│   │   ├── health.swagger.json # Health endpoints docs
+│   │   ├── users.swagger.json  # User management endpoints docs
+│   │   ├── swagger-config.json # Base Swagger configuration
+│   │   └── README.md          # Documentation structure guide
+│   ├── middleware/
+│   │   ├── auth.js            # Authentication & authorization
+│   │   ├── errorHandler.js    # Global error handling
+│   │   ├── notFound.js        # 404 error handling
+│   │   └── validation.js      # Request validation middleware
+│   ├── migrations/            # Database migration files
+│   │   └── 20250726114449-create-user.js
+│   ├── models/                # Sequelize models
+│   │   ├── index.js          # Model loader
+│   │   └── user.js           # User model definition
+│   ├── routes/
+│   │   ├── auth.js           # Authentication routes
+│   │   ├── health.js         # Health check routes
+│   │   └── users.js          # User management routes
+│   ├── seeders/              # Database seeders
+│   │   └── 20250726115531-create-admin-user.js
+│   ├── services/             # Business logic services
+│   ├── utils/
+│   │   ├── constants.js      # Application constants
+│   │   └── swaggerMerger.js  # Swagger documentation merger
+│   ├── validators/
+│   │   ├── authValidators.js # Authentication validation schemas
+│   │   └── userValidators.js # User validation schemas
+│   └── server.js             # Application entry point
+├── .env                      # Environment variables (not in git)
+├── .env.example             # Environment variables template
+├── .eslintrc.js             # ESLint configuration
+├── .gitignore              # Git ignore patterns
+├── .prettierrc             # Prettier configuration
+├── .prettierignore         # Prettier ignore patterns
+├── .sequelizerc            # Sequelize CLI configuration
+├── eslint.config.js        # Modern ESLint configuration
+├── package.json            # Project dependencies and scripts
+└── README.md              # Project documentation
 ```
 
-## 🛠 Prerequisites
+## 🛠️ Prerequisites
 
-- Node.js (>= 16.0.0)
-- npm (>= 8.0.0)
+- **Node.js** (v16.18.0 or higher)
+- **npm** (v8.19.2 or higher)
+- **PostgreSQL** (v12 or higher)
 
-## ⚡ Quick Start
+## 🚀 Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/maruti-company/maruti-be.git
-   cd maruti-be
-   ```
+### 1. Clone and Install
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+```bash
+git clone https://github.com/maruti-company/maruti-be.git
+cd maruti-be
+npm install
+```
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+### 2. Environment Setup
 
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
+```bash
+cp .env.example .env
+```
 
-5. **Access the application**
-   - API: http://localhost:3000
-   - Documentation: http://localhost:3000/api-docs
-   - Health Check: http://localhost:3000/health
-
-## 📝 Available Scripts
-
-- `npm start` - Start production server
-- `npm run dev` - Start development server with hot reload
-- `npm run lint` - Run ESLint and fix issues
-- `npm run lint:check` - Check linting without fixing
-- `npm run format` - Format code with Prettier
-- `npm run format:check` - Check formatting without fixing
-- `npm run format:all` - Format and lint code
-- `npm run pre-commit` - Run formatting and linting (pre-commit hook)
-
-## 🌐 API Endpoints
-
-### Health Check
-- `GET /health` - Basic health check
-- `GET /health/detailed` - Detailed health information
-
-### API Base
-- `GET /` - Welcome message and API information
-- `GET /api-docs` - Swagger API documentation
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Copy `.env.example` to `.env` and configure:
+Update the `.env` file with your database credentials:
 
 ```env
-# Server Configuration
-PORT=3000
-NODE_ENV=development
-
 # Database Configuration
 DB_HOST=localhost
 DB_PORT=5432
@@ -121,114 +105,218 @@ DB_USER=maruti_user
 DB_PASSWORD=your_password
 
 # JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRES_IN=24h
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRE=24h
 
-# CORS Configuration
-CORS_ORIGIN=http://localhost:3000
-
-# API Configuration
-API_PREFIX=/api/v1
-
-# Logging
-LOG_LEVEL=info
+# Server Configuration
+PORT=3000
+NODE_ENV=development
 ```
 
-### ESLint & Prettier
+### 3. Database Setup
 
-The project is configured with:
-- **ESLint**: For code linting with Node.js specific rules
-- **Prettier**: For consistent code formatting
-- **Pre-commit hooks**: Automatic formatting and linting
+```bash
+# Create database and user in PostgreSQL
+createdb maruti_db
+psql -c "CREATE USER maruti_user WITH PASSWORD 'your_password';"
+psql -c "GRANT ALL PRIVILEGES ON DATABASE maruti_db TO maruti_user;"
+
+# Run migrations to create tables
+npm run db:migrate
+
+# Seed initial admin user
+npm run db:seed
+```
+
+### 4. Start Development Server
+
+```bash
+npm run dev
+```
+
+The server will start on `http://localhost:3000`
+
+## 📜 Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm start` | Start production server |
+| `npm run dev` | Start development server with auto-reload |
+| `npm run lint` | Run ESLint to check code quality |
+| `npm run lint:check` | Check for linting issues without fixing |
+| `npm run format` | Format code using Prettier |
+| `npm run format:check` | Check code formatting without fixing |
+| `npm run format:all` | Format all supported files |
+| `npm run pre-commit` | Run linting and formatting (for git hooks) |
+| `npm run db:migrate` | Run database migrations |
+| `npm run db:seed` | Run database seeders |
+
+## 🔗 API Endpoints
+
+### Authentication
+- `POST /api/v1/auth/login` - User login
+
+### User Management (Admin Only)
+- `GET /api/v1/users` - Get all users (with pagination)
+- `POST /api/v1/users` - Create new user
+- `GET /api/v1/users/:id` - Get user by ID
+- `PUT /api/v1/users/:id` - Update user
+- `DELETE /api/v1/users/:id` - Delete user
+
+### Health Monitoring
+- `GET /health` - Basic health check
+- `GET /health/detailed` - Detailed system health
+
+## 👥 User System
+
+### Default Admin Account
+After running the seeder, you can login with:
+- **Email**: `admin@maruti.com`
+- **Password**: `admin123`
+
+⚠️ **Important**: Change this password immediately in production!
+
+### User Roles
+- **Admin (1)**: Can create, read, update, delete users and other admins
+- **Employee (2)**: Standard user role (can only login and access authorized endpoints)
+
+### Authentication Flow
+1. User logs in with email/password via `POST /api/v1/auth/login`
+2. Server validates credentials and returns JWT token
+3. Client includes token in Authorization header: `Bearer <token>`
+4. Server validates token on protected routes
+5. Admin-only routes check user role for authorization
 
 ## 📚 API Documentation
 
-The API documentation is automatically generated using Swagger/OpenAPI. Visit `/api-docs` when the server is running to explore the interactive documentation.
+Interactive API documentation is available at:
+- **Development**: `http://localhost:3000/api-docs`
+- **Production**: `https://api.maruti.com/api-docs`
 
-## 🛡 Security Features
+The documentation is built using modular JSON files for better maintainability.
 
-- **Helmet.js**: Sets various HTTP headers for security
-- **CORS**: Configurable Cross-Origin Resource Sharing
-- **Input validation**: Prepared for request validation
-- **Environment variables**: Sensitive data protection
+## ⚙️ Configuration
 
-## 🚦 Health Monitoring
+### Environment Variables
 
-The application includes comprehensive health check endpoints:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Server port | `3000` |
+| `NODE_ENV` | Environment mode | `development` |
+| `DB_HOST` | Database host | `localhost` |
+| `DB_PORT` | Database port | `5432` |
+| `DB_NAME` | Database name | `maruti_db` |
+| `DB_USER` | Database username | `maruti_user` |
+| `DB_PASSWORD` | Database password | Required |
+| `JWT_SECRET` | JWT signing secret | Required |
+| `JWT_EXPIRE` | JWT expiration time | `24h` |
 
-- **Basic Health Check** (`/health`): Server status, uptime, memory usage
-- **Detailed Health Check** (`/health/detailed`): Extended system information
+### Database Configuration
+
+The application uses PostgreSQL with Sequelize ORM. Configuration is environment-specific:
+- **Development**: Includes SQL logging
+- **Test**: Minimal logging for testing
+- **Production**: Connection pooling and no logging
+
+## 🛡️ Security Features
+
+- **Helmet.js** - Sets various HTTP headers for security
+- **CORS** - Cross-Origin Resource Sharing configuration
+- **JWT Authentication** - Secure token-based authentication
+- **Password Hashing** - bcrypt for secure password storage
+- **Input Validation** - Joi schema validation for all inputs
+- **Role-Based Access** - Granular permission system
+- **Environment Variables** - Sensitive data protection
 
 ## 🧪 Testing
 
-Testing structure is prepared with directories for:
-- Unit tests (`tests/unit/`)
-- Integration tests (`tests/integration/`)
+```bash
+# Run tests (when test suite is added)
+npm test
 
-*Test implementation coming soon.*
+# Run tests with coverage
+npm run test:coverage
+```
 
 ## 📦 Dependencies
 
 ### Production Dependencies
 - **express**: Web framework
-- **cors**: CORS middleware
+- **sequelize**: ORM for PostgreSQL
+- **pg**: PostgreSQL driver
+- **jsonwebtoken**: JWT implementation
+- **bcryptjs**: Password hashing
+- **joi**: Data validation
 - **helmet**: Security middleware
+- **cors**: CORS middleware
 - **morgan**: HTTP request logger
-- **dotenv**: Environment variable loader
-- **swagger-jsdoc**: Swagger specification generator
-- **swagger-ui-express**: Swagger UI middleware
+- **dotenv**: Environment variables
+- **swagger-jsdoc**: Swagger documentation
+- **swagger-ui-express**: Swagger UI
 
 ### Development Dependencies
-- **eslint**: JavaScript linter
-- **prettier**: Code formatter
-- **nodemon**: Development server with hot reload
+- **nodemon**: Development server with auto-reload
+- **eslint**: Code linting
+- **prettier**: Code formatting
+- **sequelize-cli**: Database migrations and seeders
 
 ## 🔄 Development Workflow
 
-1. **Code**: Write your code following the established patterns
-2. **Format**: Run `npm run format:all` to format and lint
-3. **Test**: Run tests (coming soon)
-4. **Commit**: Git hooks will ensure code quality
-5. **Deploy**: Use `npm start` for production
+1. **Feature Development**
+   - Create feature branch
+   - Implement changes following project structure
+   - Add appropriate validation and error handling
+   - Update Swagger documentation
+   - Run linting and formatting
+
+2. **Database Changes**
+   - Create migration files using Sequelize CLI
+   - Update models accordingly
+   - Test migration and rollback
+
+3. **Code Quality**
+   - All code must pass ESLint checks
+   - Use Prettier for consistent formatting
+   - Follow existing patterns and conventions
 
 ## 🌟 Best Practices
 
-- **Modular Architecture**: Separation of concerns with clear folder structure
-- **Error Handling**: Centralized error handling with proper HTTP status codes
-- **Security**: Security-first approach with proper middleware
-- **Documentation**: Self-documenting code with Swagger
-- **Code Quality**: Consistent formatting and linting
-- **Environment Configuration**: Flexible configuration management
+- **Modular Architecture** - Separation of concerns
+- **Error Handling** - Centralized error management
+- **Security First** - Multiple layers of security
+- **Documentation** - Comprehensive API documentation
+- **Code Quality** - Automated linting and formatting
+- **Environment Management** - Secure configuration handling
+- **Database Management** - Migration-based schema changes
 
-## 🔮 Roadmap
+## 🗺️ Roadmap
 
-- [ ] Database integration (PostgreSQL/MongoDB)
-- [ ] Authentication & Authorization
-- [ ] User management APIs
-- [ ] File upload handling
+- [ ] Unit and integration tests
 - [ ] Rate limiting
-- [ ] API versioning
-- [ ] Comprehensive testing suite
-- [ ] CI/CD pipeline
+- [ ] Email notifications
+- [ ] File upload functionality
+- [ ] Audit logging
+- [ ] Advanced role permissions
+- [ ] API versioning strategy
+- [ ] Performance monitoring
 - [ ] Docker containerization
-- [ ] Production deployment guides
+- [ ] CI/CD pipeline
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Run `npm run format:all` to ensure code quality
-5. Submit a pull request
+3. Follow coding standards and run tests
+4. Submit a pull request
 
 ## 📄 License
 
 This project is licensed under the ISC License.
 
-## 👥 Team
+## 👨‍💻 Team
 
-Developed by the Maruti Team
+Developed by the Maruti Development Team
 
 ---
 
-For more information or support, please contact the development team. 
+For more information, please contact the development team or refer to the API documentation. 

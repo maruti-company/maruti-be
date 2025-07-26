@@ -82,4 +82,4 @@ const detailedHealthCheck = async (req, res) => {
 module.exports = {
   healthCheck,
   detailedHealthCheck,
-}; 
+};

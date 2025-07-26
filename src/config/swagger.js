@@ -24,4 +24,4 @@ if (mergedSpec.servers) {
   });
 }
 
-module.exports = mergedSpec; 
+module.exports = mergedSpec;

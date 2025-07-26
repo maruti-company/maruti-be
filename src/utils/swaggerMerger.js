@@ -9,7 +9,7 @@ const path = require('path');
  */
 const mergeSwaggerFiles = (docsPath, baseConfig) => {
   const mergedSpec = { ...baseConfig };
-  
+
   // Initialize paths and components if they don't exist
   if (!mergedSpec.paths) {
     mergedSpec.paths = {};
@@ -23,7 +23,8 @@ const mergeSwaggerFiles = (docsPath, baseConfig) => {
 
   try {
     // Get all .swagger.json files from the docs directory
-    const files = fs.readdirSync(docsPath)
+    const files = fs
+      .readdirSync(docsPath)
       .filter(file => file.endsWith('.swagger.json'))
       .map(file => path.join(docsPath, file));
 
@@ -73,7 +74,7 @@ const mergeSwaggerFiles = (docsPath, baseConfig) => {
  * @param {string} configPath - Path to the base config file
  * @returns {object} Base configuration object
  */
-const loadBaseConfig = (configPath) => {
+const loadBaseConfig = configPath => {
   try {
     const configContent = fs.readFileSync(configPath, 'utf8');
     return JSON.parse(configContent);
@@ -86,4 +87,4 @@ const loadBaseConfig = (configPath) => {
 module.exports = {
   mergeSwaggerFiles,
   loadBaseConfig,
-}; 
+};
