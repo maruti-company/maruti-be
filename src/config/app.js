@@ -13,6 +13,9 @@ const notFound = require('../middleware/notFound');
 const healthRoutes = require('../routes/health');
 const authRoutes = require('../routes/auth');
 const userRoutes = require('../routes/users');
+const referenceRoutes = require('../routes/references');
+const customerRoutes = require('../routes/customers');
+const productRoutes = require('../routes/products');
 
 const createApp = () => {
   const app = express();
@@ -85,6 +88,9 @@ const createApp = () => {
       endpoints: {
         auth: `${apiPrefix}/auth`,
         users: `${apiPrefix}/users`,
+        references: `${apiPrefix}/references`,
+        customers: `${apiPrefix}/customers`,
+        products: `${apiPrefix}/products`,
       },
     });
   });
@@ -92,6 +98,9 @@ const createApp = () => {
   // API routes
   app.use(`${apiPrefix}/auth`, authRoutes);
   app.use(`${apiPrefix}/users`, userRoutes);
+  app.use(`${apiPrefix}/references`, referenceRoutes);
+  app.use(`${apiPrefix}/customers`, customerRoutes);
+  app.use(`${apiPrefix}/products`, productRoutes);
 
   // Error handling middleware (must be last)
   app.use(notFound);

@@ -100,8 +100,39 @@ const PASSWORD_CONFIG = {
 };
 
 // Database Table Names
+// Reference Categories
+const REFERENCE_CATEGORIES = {
+  CARPENTER: 'Carpenter',
+  INTERIOR_DESIGNER: 'Interior Designer',
+  DEALER: 'Dealer',
+  BUILDER: 'Builder',
+  DIRECT_WALKING: 'Direct/Walking',
+  STAFF: 'Staff',
+  RELATION: 'Relation',
+  OTHER: 'Other',
+};
+
+// Product Units
+const PRODUCT_UNITS = {
+  BOX: 'BOX',
+  CU_FEET: 'CU.FEET',
+  CDM: 'CDM',
+  DOZEN: 'DOZEN',
+  KGS: 'KGS',
+  METER: 'METER',
+  PCS: 'PCS',
+  R_FEET: 'R.FEET',
+  SET: 'SET',
+  SQ_MT: 'SQ.MT',
+  SQ_FT: 'SQ.FT',
+  SQ_FT_INCHES: 'SQ.FT (Inches)',
+};
+
 const TABLE_NAMES = {
   USERS: 'users',
+  REFERENCES: 'references',
+  CUSTOMERS: 'customers',
+  PRODUCTS: 'products',
 };
 
 module.exports = {
@@ -113,5 +144,7 @@ module.exports = {
   JWT_CONFIG,
   PAGINATION,
   PASSWORD_CONFIG,
+  REFERENCE_CATEGORIES,
+  PRODUCT_UNITS,
   TABLE_NAMES,
 };

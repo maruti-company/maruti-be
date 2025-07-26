@@ -92,6 +92,18 @@
     {
       "name": "Users",
       "description": "User management operations (Admin only)"
+    },
+    {
+      "name": "References",
+      "description": "Reference person management - track who referred customers"
+    },
+    {
+      "name": "Customers",
+      "description": "Customer management - main business entities"
+    },
+    {
+      "name": "Products",
+      "description": "Product catalog management - inventory items"
     }
   ]
 } 

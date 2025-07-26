@@ -1,13 +1,17 @@
 # Maruti Backend API
 
-A robust Node.js Express API built with best practices, featuring user authentication, role-based access control, and comprehensive documentation.
+A comprehensive Node.js Express API for shop management, featuring user authentication, customer management, reference tracking, and role-based access control with complete documentation.
 
 ## 🚀 Features
 
 - **Express.js Framework** - Fast, minimal web framework
 - **PostgreSQL Database** - Reliable relational database with Sequelize ORM
+- **Customer Management** - Complete customer lifecycle management
+- **Reference Tracking** - Track and manage customer referral sources
+- **Product Catalog** - Comprehensive product inventory management
 - **User Authentication** - JWT-based authentication system
 - **Role-Based Access** - Admin and Employee roles with proper authorization
+- **Data Relationships** - Foreign key constraints with referential integrity
 - **Input Validation** - Comprehensive request validation using Joi
 - **Security First** - Helmet, CORS, and other security middleware
 - **API Documentation** - Interactive Swagger/OpenAPI documentation
@@ -29,11 +33,17 @@ maruti-be/
 │   ├── controllers/
 │   │   ├── authController.js   # Authentication logic
 │   │   ├── healthController.js # Health check handlers
-│   │   └── userController.js   # User management logic
+│   │   ├── userController.js   # User management logic
+│   │   ├── referenceController.js # Reference management logic
+│   │   ├── customerController.js  # Customer management logic
+│   │   └── productController.js   # Product management logic
 │   ├── docs/                   # Modular Swagger documentation
 │   │   ├── auth.swagger.json   # Authentication endpoints docs
 │   │   ├── health.swagger.json # Health endpoints docs
 │   │   ├── users.swagger.json  # User management endpoints docs
+│   │   ├── references.swagger.json # Reference management endpoints docs
+│   │   ├── customers.swagger.json  # Customer management endpoints docs
+│   │   ├── products.swagger.json   # Product management endpoints docs
 │   │   ├── swagger-config.json # Base Swagger configuration
 │   │   └── README.md          # Documentation structure guide
 │   ├── middleware/
@@ -45,11 +55,17 @@ maruti-be/
 │   │   └── 20250726114449-create-user.js
 │   ├── models/                # Sequelize models
 │   │   ├── index.js          # Model loader
-│   │   └── user.js           # User model definition
+│   │   ├── user.js           # User model definition
+│   │   ├── reference.js      # Reference model definition
+│   │   ├── customer.js       # Customer model definition
+│   │   └── product.js        # Product model definition
 │   ├── routes/
 │   │   ├── auth.js           # Authentication routes
 │   │   ├── health.js         # Health check routes
-│   │   └── users.js          # User management routes
+│   │   ├── users.js          # User management routes
+│   │   ├── references.js     # Reference management routes
+│   │   ├── customers.js      # Customer management routes
+│   │   └── products.js       # Product management routes
 │   ├── seeders/              # Database seeders
 │   │   └── 20250726115531-create-admin-user.js
 │   ├── services/             # Business logic services
@@ -58,7 +74,10 @@ maruti-be/
 │   │   └── swaggerMerger.js  # Swagger documentation merger
 │   ├── validators/
 │   │   ├── authValidators.js # Authentication validation schemas
-│   │   └── userValidators.js # User validation schemas
+│   │   ├── userValidators.js # User validation schemas
+│   │   ├── referenceValidators.js # Reference validation schemas
+│   │   ├── customerValidators.js  # Customer validation schemas
+│   │   └── productValidators.js   # Product validation schemas
 │   └── server.js             # Application entry point
 ├── .env                      # Environment variables (not in git)
 ├── .env.example             # Environment variables template
@@ -157,11 +176,34 @@ The server will start on `http://localhost:3000`
 - `POST /api/v1/auth/login` - User login
 
 ### User Management (Admin Only)
-- `GET /api/v1/users` - Get all users (with pagination)
+- `GET /api/v1/users` - Get all users (with pagination & name filtering)
 - `POST /api/v1/users` - Create new user
 - `GET /api/v1/users/:id` - Get user by ID
 - `PUT /api/v1/users/:id` - Update user
 - `DELETE /api/v1/users/:id` - Delete user
+
+### Reference Management (Admin & Employee)
+- `GET /api/v1/references` - Get all references (with pagination, category & search filtering)
+- `GET /api/v1/references/categories` - Get all available reference categories
+- `POST /api/v1/references` - Create new reference
+- `GET /api/v1/references/:id` - Get reference by ID with customers
+- `PUT /api/v1/references/:id` - Update reference
+- `DELETE /api/v1/references/:id` - Delete reference (Admin only)
+
+### Customer Management (Admin & Employee)
+- `GET /api/v1/customers` - Get all customers (with pagination, reference & search filtering)
+- `POST /api/v1/customers` - Create new customer
+- `GET /api/v1/customers/:id` - Get customer by ID with reference
+- `PUT /api/v1/customers/:id` - Update customer
+- `DELETE /api/v1/customers/:id` - Delete customer (Admin only)
+
+### Product Management (Admin & Employee)
+- `GET /api/v1/products` - Get all products (with pagination, unit & name filtering)
+- `GET /api/v1/products/units` - Get all available product units
+- `POST /api/v1/products` - Create new product
+- `GET /api/v1/products/:id` - Get product by ID
+- `PUT /api/v1/products/:id` - Update product
+- `DELETE /api/v1/products/:id` - Delete product (Admin only)
 
 ### Health Monitoring
 - `GET /health` - Basic health check
@@ -186,6 +228,33 @@ After running the seeder, you can login with:
 3. Client includes token in Authorization header: `Bearer <token>`
 4. Server validates token on protected routes
 5. Admin-only routes check user role for authorization
+
+## 🏪 Business Modules
+
+### Reference Management
+Manage people who refer customers to your shop:
+- **Categories**: Carpenter, Interior Designer, Dealer, Builder, Direct/Walking, Staff, Relation, Other
+- **Fields**: Name (required), Mobile Number (optional), Category (required)
+- **Features**: Pagination, category filtering, search filtering (name & mobile), customer association tracking
+- **Business Logic**: Cannot delete references with associated customers
+
+### Customer Management
+Core customer data management:
+- **Fields**: Name (required), Mobile Number (required), Address (optional), Reference (optional)
+- **Features**: Pagination, reference filtering, search filtering (name & mobile), reference relationship tracking
+- **Validation**: Mobile number format validation, reference existence verification
+
+### Data Relationships
+- **One-to-Many**: Reference → Customers
+- **Foreign Key**: Customer.reference_id → Reference.id
+- **Constraints**: RESTRICT on delete (protects data integrity), CASCADE on update
+
+### Product Catalog
+Manage your shop's product inventory:
+- **Fields**: Name (required), Description (optional), Unit (required)
+- **Units**: BOX, CU.FEET, CDM, DOZEN, KGS, METER, PCS, R.FEET, SET, SQ.MT, SQ.FT, SQ.FT (Inches)
+- **Features**: Pagination, unit filtering, name filtering, comprehensive validation
+- **Validation**: Name length (2-200 chars), description length (max 1000 chars), unit validation
 
 ## 📚 API Documentation
 

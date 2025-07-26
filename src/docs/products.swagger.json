@@ -1,10 +1,85 @@
 {
   "paths": {
-    "/users": {
+    "/products/units": {
       "get": {
-        "summary": "Get all users",
-        "description": "Retrieve a paginated list of all users (Admin only)",
-        "tags": ["Users"],
+        "summary": "Get all available product units",
+        "description": "Retrieve a list of all available product units for dropdown/selection purposes",
+        "tags": ["Products"],
+        "servers": [
+          {
+            "url": "http://localhost:3000/api/v1",
+            "description": "Development server (API endpoints)"
+          },
+          {
+            "url": "https://api.maruti.com/api/v1",
+            "description": "Production server (API endpoints)"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product units retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductUnitsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Product units retrieved successfully",
+                  "data": {
+                    "units": [
+                      "BOX",
+                      "CU.FEET",
+                      "CDM",
+                      "DOZEN",
+                      "KGS",
+                      "METER",
+                      "PCS",
+                      "R.FEET",
+                      "SET",
+                      "SQ.MT",
+                      "SQ.FT",
+                      "SQ.FT (Inches)"
+                    ],
+                    "count": 12
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Token required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "Get all products",
+        "description": "Retrieve a paginated list of all products with optional filtering by unit",
+        "tags": ["Products"],
         "servers": [
           {
             "url": "http://localhost:3000/api/v1",
@@ -36,7 +111,7 @@
           {
             "name": "limit",
             "in": "query",
-            "description": "Number of users per page",
+            "description": "Number of products per page",
             "required": false,
             "schema": {
               "type": "integer",
@@ -47,24 +122,35 @@
             }
           },
           {
-            "name": "name",
+            "name": "unit",
             "in": "query",
-            "description": "Filter by user name (partial match)",
+            "description": "Filter by product unit",
             "required": false,
             "schema": {
               "type": "string",
-              "maxLength": 100,
-              "example": "admin"
+              "enum": ["BOX", "CU.FEET", "CDM", "DOZEN", "KGS", "METER", "PCS", "R.FEET", "SET", "SQ.MT", "SQ.FT", "SQ.FT (Inches)"],
+              "example": "PCS"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Filter by product name (partial match)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "example": "wooden"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Users retrieved successfully",
+            "description": "Products retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UsersListResponse"
+                  "$ref": "#/components/schemas/ProductsListResponse"
                 }
               }
             }
@@ -79,12 +165,12 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden - Admin access required",
+          "400": {
+            "description": "Validation error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/ValidationError"
                 }
               }
             }
@@ -92,9 +178,9 @@
         }
       },
       "post": {
-        "summary": "Create new user",
-        "description": "Create a new user account (Admin only)",
-        "tags": ["Users"],
+        "summary": "Create new product",
+        "description": "Create a new product (Both Admin and Employee)",
+        "tags": ["Products"],
         "servers": [
           {
             "url": "http://localhost:3000/api/v1",
@@ -115,24 +201,23 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserRequest"
+                "$ref": "#/components/schemas/CreateProductRequest"
               },
               "example": {
-                "email": "employee@maruti.com",
-                "user_name": "John Doe",
-                "password": "employee123",
-                "role": 2
+                "name": "Premium Wooden Chair",
+                "description": "High-quality wooden chair with ergonomic design",
+                "unit": "PCS"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "User created successfully",
+            "description": "Product created successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/ProductResponse"
                 }
               }
             }
@@ -157,22 +242,16 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden - Admin access required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "409": {
-            "description": "User already exists",
+            "description": "Product with this name already exists",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Product with this name already exists"
                 }
               }
             }
@@ -180,11 +259,11 @@
         }
       }
     },
-    "/users/{id}": {
+    "/products/{id}": {
       "get": {
-        "summary": "Get user by ID",
-        "description": "Retrieve a specific user by their ID (Admin only)",
-        "tags": ["Users"],
+        "summary": "Get product by ID",
+        "description": "Retrieve a specific product by its ID",
+        "tags": ["Products"],
         "servers": [
           {
             "url": "http://localhost:3000/api/v1",
@@ -204,28 +283,28 @@
           {
             "name": "id",
             "in": "path",
-            "description": "User UUID",
+            "description": "Product UUID",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "example": "15167593-beb4-455c-a779-9864416af4f4"
+              "example": "123e4567-e89b-12d3-a456-426614174000"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "User retrieved successfully",
+            "description": "Product retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/ProductResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid user ID format",
+            "description": "Invalid product ID format",
             "content": {
               "application/json": {
                 "schema": {
@@ -244,18 +323,8 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden - Admin access required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "404": {
-            "description": "User not found",
+            "description": "Product not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -267,9 +336,9 @@
         }
       },
       "put": {
-        "summary": "Update user",
-        "description": "Update user information (Admin only)",
-        "tags": ["Users"],
+        "summary": "Update product",
+        "description": "Update product information (Both Admin and Employee)",
+        "tags": ["Products"],
         "servers": [
           {
             "url": "http://localhost:3000/api/v1",
@@ -289,12 +358,12 @@
           {
             "name": "id",
             "in": "path",
-            "description": "User UUID",
+            "description": "Product UUID",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "example": "15167593-beb4-455c-a779-9864416af4f4"
+              "example": "123e4567-e89b-12d3-a456-426614174000"
             }
           }
         ],
@@ -303,23 +372,22 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserRequest"
+                "$ref": "#/components/schemas/UpdateProductRequest"
               },
               "example": {
-                "email": "newemail@maruti.com",
-                "user_name": "Jane Smith",
-                "role": 1
+                "name": "Updated Premium Wooden Chair",
+                "description": "Updated description for the wooden chair"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "User updated successfully",
+            "description": "Product updated successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/ProductResponse"
                 }
               }
             }
@@ -344,18 +412,8 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden - Admin access required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "404": {
-            "description": "User not found",
+            "description": "Product not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -365,11 +423,15 @@
             }
           },
           "409": {
-            "description": "Email already exists",
+            "description": "Product with this name already exists",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Product with this name already exists"
                 }
               }
             }
@@ -377,9 +439,9 @@
         }
       },
       "delete": {
-        "summary": "Delete user",
-        "description": "Delete a user account (Admin only, cannot delete self)",
-        "tags": ["Users"],
+        "summary": "Delete product",
+        "description": "Delete a product (Admin only)",
+        "tags": ["Products"],
         "servers": [
           {
             "url": "http://localhost:3000/api/v1",
@@ -399,32 +461,22 @@
           {
             "name": "id",
             "in": "path",
-            "description": "User UUID",
+            "description": "Product UUID",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "example": "15167593-beb4-455c-a779-9864416af4f4"
+              "example": "123e4567-e89b-12d3-a456-426614174000"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "User deleted successfully",
+            "description": "Product deleted successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Cannot delete self or invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -450,7 +502,7 @@
             }
           },
           "404": {
-            "description": "User not found",
+            "description": "Product not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -465,69 +517,95 @@
   },
   "components": {
     "schemas": {
-      "CreateUserRequest": {
+      "CreateProductRequest": {
         "type": "object",
-        "required": ["email", "user_name", "password", "role"],
+        "required": ["name", "unit"],
         "properties": {
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "employee@maruti.com",
-            "description": "User's email address"
-          },
-          "user_name": {
+          "name": {
             "type": "string",
             "minLength": 2,
-            "maxLength": 100,
-            "example": "John Doe",
-            "description": "User's display name"
+            "maxLength": 200,
+            "example": "Premium Wooden Chair",
+            "description": "Product name"
           },
-          "password": {
+          "description": {
             "type": "string",
-            "minLength": 6,
-            "example": "employee123",
-            "description": "User's password (minimum 6 characters)"
+            "maxLength": 1000,
+            "example": "High-quality wooden chair with ergonomic design",
+            "description": "Product description (optional)"
           },
-          "role": {
-            "type": "integer",
-            "enum": [1, 2],
-            "example": 2,
-            "description": "User role (1 = Admin, 2 = Employee)"
+          "unit": {
+            "type": "string",
+            "enum": ["BOX", "CU.FEET", "CDM", "DOZEN", "KGS", "METER", "PCS", "R.FEET", "SET", "SQ.MT", "SQ.FT", "SQ.FT (Inches)"],
+            "example": "PCS",
+            "description": "Product unit of measurement"
           }
         }
       },
-      "UpdateUserRequest": {
+      "UpdateProductRequest": {
         "type": "object",
         "minProperties": 1,
         "properties": {
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "newemail@maruti.com",
-            "description": "User's email address"
-          },
-          "user_name": {
+          "name": {
             "type": "string",
             "minLength": 2,
-            "maxLength": 100,
-            "example": "Jane Smith",
-            "description": "User's display name"
+            "maxLength": 200,
+            "example": "Updated Premium Wooden Chair",
+            "description": "Product name"
           },
-          "password": {
+          "description": {
             "type": "string",
-            "minLength": 6,
-            "example": "newpassword123",
-            "description": "User's new password (minimum 6 characters)"
+            "maxLength": 1000,
+            "example": "Updated description for the wooden chair",
+            "description": "Product description"
           },
-          "role": {
-            "type": "integer",
-            "enum": [1, 2],
-            "example": 1,
-            "description": "User role (1 = Admin, 2 = Employee)"
+          "unit": {
+            "type": "string",
+            "enum": ["BOX", "CU.FEET", "CDM", "DOZEN", "KGS", "METER", "PCS", "R.FEET", "SET", "SQ.MT", "SQ.FT", "SQ.FT (Inches)"],
+            "example": "SET",
+            "description": "Product unit of measurement"
           }
         }
       },
-      "UserResponse": {
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "description": "Unique product identifier"
+          },
+          "name": {
+            "type": "string",
+            "example": "Premium Wooden Chair",
+            "description": "Product name"
+          },
+          "description": {
+            "type": "string",
+            "example": "High-quality wooden chair with ergonomic design",
+            "description": "Product description"
+          },
+          "unit": {
+            "type": "string",
+            "example": "PCS",
+            "description": "Product unit of measurement"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-07-26T12:00:42.250Z",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-07-26T12:00:42.250Z",
+            "description": "Last update timestamp"
+          }
+        }
+      },
+      "ProductResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -536,19 +614,19 @@
           },
           "message": {
             "type": "string",
-            "example": "User retrieved successfully"
+            "example": "Product retrieved successfully"
           },
           "data": {
             "type": "object",
             "properties": {
-              "user": {
-                "$ref": "#/components/schemas/User"
+              "product": {
+                "$ref": "#/components/schemas/Product"
               }
             }
           }
         }
       },
-      "UsersListResponse": {
+      "ProductUnitsResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -557,56 +635,52 @@
           },
           "message": {
             "type": "string",
-            "example": "Users retrieved successfully"
+            "example": "Product units retrieved successfully"
           },
           "data": {
             "type": "object",
             "properties": {
-              "users": {
+              "units": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/User"
+                  "type": "string"
+                },
+                "example": ["BOX", "CU.FEET", "CDM", "DOZEN", "KGS", "METER", "PCS", "R.FEET", "SET", "SQ.MT", "SQ.FT", "SQ.FT (Inches)"],
+                "description": "Array of available product units"
+              },
+              "count": {
+                "type": "integer",
+                "example": 12,
+                "description": "Total number of available units"
+              }
+            }
+          }
+        }
+      },
+      "ProductsListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Products retrieved successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "products": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Product"
                 }
               },
               "pagination": {
                 "$ref": "#/components/schemas/Pagination"
               }
             }
-          }
-        }
-      },
-      "Pagination": {
-        "type": "object",
-        "properties": {
-          "page": {
-            "type": "integer",
-            "example": 1,
-            "description": "Current page number"
-          },
-          "limit": {
-            "type": "integer",
-            "example": 10,
-            "description": "Number of items per page"
-          },
-          "total": {
-            "type": "integer",
-            "example": 25,
-            "description": "Total number of items"
-          },
-          "pages": {
-            "type": "integer",
-            "example": 3,
-            "description": "Total number of pages"
-          },
-          "hasNext": {
-            "type": "boolean",
-            "example": true,
-            "description": "Whether there is a next page"
-          },
-          "hasPrev": {
-            "type": "boolean",
-            "example": false,
-            "description": "Whether there is a previous page"
           }
         }
       }

@@ -57,6 +57,7 @@ const getUsers = async (req, res) => {
     // Use validated values with fallback to constants
     const page = parseInt(req.query.page) || PAGINATION.DEFAULT_PAGE;
     const limit = parseInt(req.query.limit) || PAGINATION.DEFAULT_LIMIT;
+    const { name } = req.query;
 
     // Ensure values are valid numbers
     const validPage = Math.max(1, page);
@@ -64,7 +65,16 @@ const getUsers = async (req, res) => {
 
     const offset = (validPage - 1) * validLimit;
 
+    // Build where clause for filtering
+    const whereClause = {};
+    if (name) {
+      whereClause.user_name = {
+        [Op.iLike]: `%${name}%`,
+      };
+    }
+
     const { count, rows: users } = await User.findAndCountAll({
+      where: whereClause,
       limit: validLimit,
       offset,
       order: [['createdAt', 'DESC']],
