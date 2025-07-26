@@ -1,26 +1,5 @@
 const packageJson = require('../../package.json');
 
-/**
- * @swagger
- * /health:
- *   get:
- *     summary: Health check endpoint
- *     description: Check the health status of the server and its dependencies
- *     tags: [Health]
- *     responses:
- *       200:
- *         description: Server is healthy
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/HealthCheck'
- *       503:
- *         description: Server is unhealthy
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 const healthCheck = async (req, res) => {
   try {
     const healthData = {
@@ -57,40 +36,6 @@ const healthCheck = async (req, res) => {
   }
 };
 
-/**
- * @swagger
- * /health/detailed:
- *   get:
- *     summary: Detailed health check endpoint
- *     description: Get detailed health information including database and external services
- *     tags: [Health]
- *     responses:
- *       200:
- *         description: Detailed server health information
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     server:
- *                       $ref: '#/components/schemas/HealthCheck/properties/data'
- *                     database:
- *                       type: object
- *                       properties:
- *                         status:
- *                           type: string
- *                         latency:
- *                           type: number
- *                     services:
- *                       type: object
- */
 const detailedHealthCheck = async (req, res) => {
   try {
     const healthData = {

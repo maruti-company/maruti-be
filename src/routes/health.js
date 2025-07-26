@@ -3,13 +3,6 @@ const { healthCheck, detailedHealthCheck } = require('../controllers/healthContr
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Health
- *   description: Health check endpoints for monitoring server status
- */
-
 // Basic health check
 router.get('/', healthCheck);
 
