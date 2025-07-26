@@ -133,6 +133,7 @@ const TABLE_NAMES = {
   REFERENCES: 'references',
   CUSTOMERS: 'customers',
   PRODUCTS: 'products',
+  LOCATIONS: 'locations',
 };
 
 module.exports = {

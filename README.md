@@ -77,7 +77,8 @@ maruti-be/
 │   │   ├── userValidators.js # User validation schemas
 │   │   ├── referenceValidators.js # Reference validation schemas
 │   │   ├── customerValidators.js  # Customer validation schemas
-│   │   └── productValidators.js   # Product validation schemas
+│   │   ├── productValidators.js   # Product validation schemas
+│   │   └── locationValidators.js  # Location validation schemas
 │   └── server.js             # Application entry point
 ├── .env                      # Environment variables (not in git)
 ├── .env.example             # Environment variables template
@@ -205,6 +206,13 @@ The server will start on `http://localhost:3000`
 - `PUT /api/v1/products/:id` - Update product
 - `DELETE /api/v1/products/:id` - Delete product (Admin only)
 
+### Location Management (Admin & Employee)
+- `GET /api/v1/locations` - Get all locations (with pagination & name filtering)
+- `POST /api/v1/locations` - Create new location
+- `GET /api/v1/locations/:id` - Get location by ID
+- `PUT /api/v1/locations/:id` - Update location
+- `DELETE /api/v1/locations/:id` - Delete location (Admin only)
+
 ### Health Monitoring
 - `GET /health` - Basic health check
 - `GET /health/detailed` - Detailed system health
@@ -255,6 +263,13 @@ Manage your shop's product inventory:
 - **Units**: BOX, CU.FEET, CDM, DOZEN, KGS, METER, PCS, R.FEET, SET, SQ.MT, SQ.FT, SQ.FT (Inches)
 - **Features**: Pagination, unit filtering, name filtering, comprehensive validation
 - **Validation**: Name length (2-200 chars), description length (max 1000 chars), unit validation
+
+### Location Management
+Manage locations where products are used:
+- **Fields**: Name (required)
+- **Features**: Pagination, name filtering, unique name constraint
+- **Validation**: Name length (2-100 chars), unique name validation
+- **Business Logic**: Employees cannot delete locations, only admins can
 
 ## 📚 API Documentation
 

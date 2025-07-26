@@ -101,9 +101,13 @@
       "name": "Customers",
       "description": "Customer management - main business entities"
     },
-    {
-      "name": "Products",
-      "description": "Product catalog management - inventory items"
-    }
+            {
+          "name": "Products",
+          "description": "Product catalog management - inventory items"
+        },
+        {
+          "name": "Locations",
+          "description": "Location management - where products are used"
+        }
   ]
 } 

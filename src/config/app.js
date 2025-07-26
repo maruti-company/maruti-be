@@ -16,6 +16,7 @@ const userRoutes = require('../routes/users');
 const referenceRoutes = require('../routes/references');
 const customerRoutes = require('../routes/customers');
 const productRoutes = require('../routes/products');
+const locationRoutes = require('../routes/locations');
 
 const createApp = () => {
   const app = express();
@@ -91,6 +92,7 @@ const createApp = () => {
         references: `${apiPrefix}/references`,
         customers: `${apiPrefix}/customers`,
         products: `${apiPrefix}/products`,
+        locations: `${apiPrefix}/locations`,
       },
     });
   });
@@ -101,6 +103,7 @@ const createApp = () => {
   app.use(`${apiPrefix}/references`, referenceRoutes);
   app.use(`${apiPrefix}/customers`, customerRoutes);
   app.use(`${apiPrefix}/products`, productRoutes);
+  app.use(`${apiPrefix}/locations`, locationRoutes);
 
   // Error handling middleware (must be last)
   app.use(notFound);
