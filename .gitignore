@@ -121,3 +121,6 @@ uploads/
 temp/
 build/
 dist/ 
+
+# Cursor rules
+.cursor/
