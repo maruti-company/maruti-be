@@ -31,7 +31,7 @@ const createProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Create product error:', error);
-    
+
     // Handle unique constraint violation
     if (error.name === 'SequelizeUniqueConstraintError' && error.fields && error.fields.name) {
       return res.status(HTTP_STATUS.CONFLICT).json({
@@ -39,7 +39,7 @@ const createProduct = async (req, res) => {
         message: 'Product with this name already exists',
       });
     }
-    
+
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -172,7 +172,7 @@ const updateProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Update product error:', error);
-    
+
     // Handle unique constraint violation
     if (error.name === 'SequelizeUniqueConstraintError' && error.fields && error.fields.name) {
       return res.status(HTTP_STATUS.CONFLICT).json({
@@ -180,7 +180,7 @@ const updateProduct = async (req, res) => {
         message: 'Product with this name already exists',
       });
     }
-    
+
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
