@@ -128,12 +128,37 @@ const PRODUCT_UNITS = {
   SQ_FT_INCHES: 'SQ.FT (Inches)',
 };
 
+const DISCOUNT_TYPES = {
+  PERCENTAGE: 'PERCENTAGE',
+  PER_PIECE: 'PER_PIECE',
+};
+
+const IMAGE_CONFIG = {
+  MAX_IMAGES_PER_ITEM: 10,
+  MAX_FILE_SIZE_MB: 5,
+  MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024, // 5MB in bytes
+  ALLOWED_MIME_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+};
+
+const FILE_CONFIG = {
+  MAX_FILE_SIZE_MB: 10,
+  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024, // 10MB in bytes
+  ALLOWED_MIME_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'],
+};
+
+// Quotation Configuration
+const QUOTATION_CONFIG = {
+  PUBLIC_ACCESS_EXPIRY_MONTHS: 3, // Public quotation links expire after 3 months
+};
+
 const TABLE_NAMES = {
   USERS: 'users',
   REFERENCES: 'references',
   CUSTOMERS: 'customers',
   PRODUCTS: 'products',
   LOCATIONS: 'locations',
+  QUOTATIONS: 'quotations',
+  ITEMS: 'items',
 };
 
 module.exports = {
@@ -147,5 +172,9 @@ module.exports = {
   PASSWORD_CONFIG,
   REFERENCE_CATEGORIES,
   PRODUCT_UNITS,
+  DISCOUNT_TYPES,
+  IMAGE_CONFIG,
+  FILE_CONFIG,
+  QUOTATION_CONFIG,
   TABLE_NAMES,
 };

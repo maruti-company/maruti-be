@@ -16,6 +16,14 @@ module.exports = sequelize => {
         onDelete: 'RESTRICT', // Prevent deletion of reference if customers exist
         onUpdate: 'CASCADE',
       });
+
+      // A customer can have many quotations
+      Customer.hasMany(models.Quotation, {
+        foreignKey: 'customer_id',
+        as: 'quotations',
+        onDelete: 'RESTRICT', // Prevent deletion of customer if quotations exist
+        onUpdate: 'CASCADE',
+      });
     }
 
     /**

@@ -36,7 +36,8 @@ maruti-be/
 │   │   ├── userController.js   # User management logic
 │   │   ├── referenceController.js # Reference management logic
 │   │   ├── customerController.js  # Customer management logic
-│   │   └── productController.js   # Product management logic
+│   │   ├── productController.js   # Product management logic
+│   │   └── quotationController.js # Quotation management logic
 │   ├── docs/                   # Modular Swagger documentation
 │   │   ├── auth.swagger.json   # Authentication endpoints docs
 │   │   ├── health.swagger.json # Health endpoints docs
@@ -58,17 +59,22 @@ maruti-be/
 │   │   ├── user.js           # User model definition
 │   │   ├── reference.js      # Reference model definition
 │   │   ├── customer.js       # Customer model definition
-│   │   └── product.js        # Product model definition
+│   │   ├── product.js        # Product model definition
+│   │   ├── location.js       # Location model definition
+│   │   ├── quotation.js      # Quotation model definition
+│   │   └── item.js           # Item model definition
 │   ├── routes/
 │   │   ├── auth.js           # Authentication routes
 │   │   ├── health.js         # Health check routes
 │   │   ├── users.js          # User management routes
 │   │   ├── references.js     # Reference management routes
 │   │   ├── customers.js      # Customer management routes
-│   │   └── products.js       # Product management routes
+│   │   ├── products.js       # Product management routes
+│   │   └── quotations.js     # Quotation management routes
 │   ├── seeders/              # Database seeders
 │   │   └── 20250726115531-create-admin-user.js
 │   ├── services/             # Business logic services
+│   │   └── s3Service.js      # AWS S3 image upload service
 │   ├── utils/
 │   │   ├── constants.js      # Application constants
 │   │   └── swaggerMerger.js  # Swagger documentation merger
@@ -78,7 +84,8 @@ maruti-be/
 │   │   ├── referenceValidators.js # Reference validation schemas
 │   │   ├── customerValidators.js  # Customer validation schemas
 │   │   ├── productValidators.js   # Product validation schemas
-│   │   └── locationValidators.js  # Location validation schemas
+│   │   ├── locationValidators.js  # Location validation schemas
+│   │   └── quotationValidators.js # Quotation validation schemas
 │   └── server.js             # Application entry point
 ├── .env                      # Environment variables (not in git)
 ├── .env.example             # Environment variables template
@@ -213,6 +220,18 @@ The server will start on `http://localhost:3000`
 - `PUT /api/v1/locations/:id` - Update location
 - `DELETE /api/v1/locations/:id` - Delete location (Admin only)
 
+### Quotation Management (Admin & Employee)
+- `GET /api/v1/quotations` - Get all quotations (with pagination, customer & date filtering)
+- `POST /api/v1/quotations` - Create new quotation with items and images
+- `GET /api/v1/quotations/:id` - Get quotation by ID with items and associations
+- `PUT /api/v1/quotations/:id` - Update quotation with items and images
+- `PATCH /api/v1/quotations/:id/shared-date` - Update last shared date to current datetime
+- `POST /api/v1/quotations/:id/regenerate-pdf` - Regenerate PDF for quotation
+- `DELETE /api/v1/quotations/:id` - Delete quotation (Admin only)
+
+### Public Quotation Access (No Authentication Required)
+- `GET /api/v1/quotations/public/:id` - Get public quotation details (valid for 3 months after sharing)
+
 ### Health Monitoring
 - `GET /health` - Basic health check
 - `GET /health/detailed` - Detailed system health
@@ -271,6 +290,17 @@ Manage locations where products are used:
 - **Validation**: Name length (2-100 chars), unique name validation
 - **Business Logic**: Employees cannot delete locations, only admins can
 
+### Quotation Management
+Manage customer quotations with items and images:
+- **Fields**: Quotation Date (required), Customer ID (required), Last Shared Date (optional), PDF Path (auto-generated)
+- **Items**: Product ID (required), Description (optional), Rate (required), Discount (optional), Unit (auto-filled from product), Images (optional), Location ID (optional)
+- **Features**: Pagination, customer filtering, date range filtering, image upload to S3, automatic unit assignment, **PDF generation and storage**, **public access links**
+- **Validation**: Rate/discount as positive decimals, max 10 images per item (5MB each), proper foreign key relationships
+- **Business Logic**: Deleting quotation deletes all items and PDF, employees cannot delete quotations, automatic S3 cleanup
+- **Public Access**: Shareable links valid for 3 months after sharing, no authentication required
+- **Image Storage**: AWS S3 integration with organized folder structure (`quotations/{quotation_id}/items/`), path storage in database
+- **PDF Generation**: Automatic PDF generation using jsPDF, professional layout with Maruti Laminates branding, S3 storage in `quotations/{quotation_id}/` folder
+
 ## 📚 API Documentation
 
 Interactive API documentation is available at:
@@ -285,122 +315,4 @@ The documentation is built using modular JSON files for better maintainability.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PORT` | Server port | `3000` |
-| `NODE_ENV` | Environment mode | `development` |
-| `DB_HOST` | Database host | `localhost` |
-| `DB_PORT` | Database port | `5432` |
-| `DB_NAME` | Database name | `maruti_db` |
-| `DB_USER` | Database username | `maruti_user` |
-| `DB_PASSWORD` | Database password | Required |
-| `JWT_SECRET` | JWT signing secret | Required |
-| `JWT_EXPIRE` | JWT expiration time | `24h` |
-
-### Database Configuration
-
-The application uses PostgreSQL with Sequelize ORM. Configuration is environment-specific:
-- **Development**: Includes SQL logging
-- **Test**: Minimal logging for testing
-- **Production**: Connection pooling and no logging
-
-## 🛡️ Security Features
-
-- **Helmet.js** - Sets various HTTP headers for security
-- **CORS** - Cross-Origin Resource Sharing configuration
-- **JWT Authentication** - Secure token-based authentication
-- **Password Hashing** - bcrypt for secure password storage
-- **Input Validation** - Joi schema validation for all inputs
-- **Role-Based Access** - Granular permission system
-- **Environment Variables** - Sensitive data protection
-
-## 🧪 Testing
-
-```bash
-# Run tests (when test suite is added)
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-## 📦 Dependencies
-
-### Production Dependencies
-- **express**: Web framework
-- **sequelize**: ORM for PostgreSQL
-- **pg**: PostgreSQL driver
-- **jsonwebtoken**: JWT implementation
-- **bcryptjs**: Password hashing
-- **joi**: Data validation
-- **helmet**: Security middleware
-- **cors**: CORS middleware
-- **morgan**: HTTP request logger
-- **dotenv**: Environment variables
-- **swagger-jsdoc**: Swagger documentation
-- **swagger-ui-express**: Swagger UI
-
-### Development Dependencies
-- **nodemon**: Development server with auto-reload
-- **eslint**: Code linting
-- **prettier**: Code formatting
-- **sequelize-cli**: Database migrations and seeders
-
-## 🔄 Development Workflow
-
-1. **Feature Development**
-   - Create feature branch
-   - Implement changes following project structure
-   - Add appropriate validation and error handling
-   - Update Swagger documentation
-   - Run linting and formatting
-
-2. **Database Changes**
-   - Create migration files using Sequelize CLI
-   - Update models accordingly
-   - Test migration and rollback
-
-3. **Code Quality**
-   - All code must pass ESLint checks
-   - Use Prettier for consistent formatting
-   - Follow existing patterns and conventions
-
-## 🌟 Best Practices
-
-- **Modular Architecture** - Separation of concerns
-- **Error Handling** - Centralized error management
-- **Security First** - Multiple layers of security
-- **Documentation** - Comprehensive API documentation
-- **Code Quality** - Automated linting and formatting
-- **Environment Management** - Secure configuration handling
-- **Database Management** - Migration-based schema changes
-
-## 🗺️ Roadmap
-
-- [ ] Unit and integration tests
-- [ ] Rate limiting
-- [ ] Email notifications
-- [ ] File upload functionality
-- [ ] Audit logging
-- [ ] Advanced role permissions
-- [ ] API versioning strategy
-- [ ] Performance monitoring
-- [ ] Docker containerization
-- [ ] CI/CD pipeline
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Follow coding standards and run tests
-4. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the ISC License.
-
-## 👨‍💻 Team
-
-Developed by the Maruti Development Team
-
----
-
-For more information, please contact the development team or refer to the API documentation. 
+| `PORT`

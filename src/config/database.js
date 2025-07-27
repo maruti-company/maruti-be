@@ -8,7 +8,7 @@ const config = {
     username: process.env.DB_USER || 'maruti_user',
     password: process.env.DB_PASSWORD || 'your_password',
     dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    logging: false,
     define: {
       timestamps: true,
       underscored: false,
