@@ -1,5 +1,11 @@
 const Joi = require('joi');
-const { PAGINATION, PRODUCT_UNITS, DISCOUNT_TYPES, IMAGE_CONFIG } = require('../utils/constants');
+const {
+  PAGINATION,
+  PRODUCT_UNITS,
+  DISCOUNT_TYPES,
+  PRICE_TYPES,
+  IMAGE_CONFIG,
+} = require('../utils/constants');
 
 /**
  * Validation schema for item creation/update
@@ -38,6 +44,11 @@ const itemSchema = Joi.object({
   location_id: Joi.string().uuid().optional().messages({
     'string.guid': 'Location ID must be a valid UUID',
   }),
+  quantity: Joi.number().integer().positive().default(1).messages({
+    'number.base': 'Quantity must be a valid number',
+    'number.integer': 'Quantity must be an integer',
+    'number.positive': 'Quantity must be a positive number',
+  }),
 });
 
 /**
@@ -55,6 +66,15 @@ const createQuotationValidator = Joi.object({
   last_shared_date: Joi.date().optional().messages({
     'date.base': 'Last shared date must be a valid date',
   }),
+  remarks: Joi.string().max(1000).optional().messages({
+    'string.max': 'Remarks cannot exceed 1000 characters',
+  }),
+  price_type: Joi.string()
+    .valid(...Object.values(PRICE_TYPES))
+    .default(PRICE_TYPES.INCLUSIVE_TAX)
+    .messages({
+      'any.only': `Price type must be one of: ${Object.values(PRICE_TYPES).join(', ')}`,
+    }),
   items: Joi.alternatives()
     .try(
       Joi.array().items(itemSchema).min(1).required(),
@@ -93,6 +113,15 @@ const updateQuotationValidator = Joi.object({
   last_shared_date: Joi.date().optional().messages({
     'date.base': 'Last shared date must be a valid date',
   }),
+  remarks: Joi.string().max(1000).optional().messages({
+    'string.max': 'Remarks cannot exceed 1000 characters',
+  }),
+  price_type: Joi.string()
+    .valid(...Object.values(PRICE_TYPES))
+    .optional()
+    .messages({
+      'any.only': `Price type must be one of: ${Object.values(PRICE_TYPES).join(', ')}`,
+    }),
   items: Joi.alternatives()
     .try(
       Joi.array().items(itemSchema).min(1).optional(),

@@ -177,6 +177,19 @@
                     "description": "Last shared date (optional)",
                     "example": "2025-01-16T14:00:00Z"
                   },
+                  "remarks": {
+                    "type": "string",
+                    "description": "Optional remarks for the quotation (max 1000 characters)",
+                    "example": "Special pricing for bulk order",
+                    "maxLength": 1000
+                  },
+                  "price_type": {
+                    "type": "string",
+                    "enum": ["Inclusive Tax", "Exclusive Tax"],
+                    "description": "Price type for the quotation",
+                    "example": "Inclusive Tax",
+                    "default": "Inclusive Tax"
+                  },
                   "items": {
                     "type": "string",
                     "description": "JSON string of items array",
@@ -188,7 +201,7 @@
                       "type": "string",
                       "format": "binary"
                     },
-                    "description": "Images for first item (max 10, 5MB each)"
+                                         "description": "Images for first item (max 1, 5MB each)"
                   },
                   "items[1][images]": {
                     "type": "array",
@@ -196,7 +209,7 @@
                       "type": "string",
                       "format": "binary"
                     },
-                    "description": "Images for second item (max 10, 5MB each)"
+                                         "description": "Images for second item (max 1, 5MB each)"
                   }
                 },
                 "required": ["quotation_date", "customer_id", "items"]
@@ -333,6 +346,15 @@
                     "type": "string",
                     "format": "date-time",
                     "description": "Last shared date"
+                  },
+                  "remarks": {
+                    "type": "string",
+                    "description": "Optional remarks for the quotation (max 1000 characters)"
+                  },
+                  "price_type": {
+                    "type": "string",
+                    "enum": ["Inclusive Tax", "Exclusive Tax"],
+                    "description": "Price type for the quotation"
                   },
                   "items": {
                     "type": "string",
@@ -636,13 +658,20 @@
               "type": "string"
             },
             "example": ["quotations/123e4567-e89b-12d3-a456-426614174000/items/1640995200000-abc123.jpg"],
-            "maxItems": 10
+                         "maxItems": 1
           },
 
           "location_id": {
             "type": "string",
             "format": "uuid",
             "example": "123e4567-e89b-12d3-a456-426614174003"
+          },
+          "quantity": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 1,
+            "default": 1,
+            "description": "Quantity of the item"
           },
           "createdAt": {
             "type": "string",
@@ -689,6 +718,18 @@
             "type": "string",
             "description": "S3 path to the generated PDF file",
             "example": "quotations/123e4567-e89b-12d3-a456-426614174000/quotation-123e4567-e89b-12d3-a456-426614174000-1640995200000.pdf"
+          },
+          "remarks": {
+            "type": "string",
+            "example": "Special pricing for bulk order",
+            "maxLength": 1000,
+            "description": "Optional remarks for the quotation"
+          },
+          "price_type": {
+            "type": "string",
+            "enum": ["Inclusive Tax", "Exclusive Tax"],
+            "example": "Inclusive Tax",
+            "description": "Price type for the quotation"
           },
           "createdAt": {
             "type": "string",
@@ -777,6 +818,18 @@
             "format": "date-time",
             "example": "2025-01-16T14:00:00Z"
           },
+          "remarks": {
+            "type": "string",
+            "example": "Special pricing for bulk order",
+            "maxLength": 1000,
+            "description": "Optional remarks for the quotation"
+          },
+          "price_type": {
+            "type": "string",
+            "enum": ["Inclusive Tax", "Exclusive Tax"],
+            "example": "Inclusive Tax",
+            "description": "Price type for the quotation"
+          },
           "items": {
             "type": "array",
             "items": {
@@ -818,6 +871,100 @@
                   "type": "string",
                   "format": "uuid",
                   "example": "123e4567-e89b-12d3-a456-426614174003"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "example": 1,
+                  "minimum": 1,
+                  "default": 1,
+                  "description": "Quantity of the item"
+                }
+              },
+              "required": ["product_id", "rate"]
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["quotation_date", "customer_id", "items"]
+      },
+      "CreateQuotationRequest": {
+        "type": "object",
+        "properties": {
+          "quotation_date": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-01-15T10:30:00Z"
+          },
+          "customer_id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "123e4567-e89b-12d3-a456-426614174004"
+          },
+          "last_shared_date": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-01-16T14:00:00Z"
+          },
+          "remarks": {
+            "type": "string",
+            "example": "Special pricing for bulk order",
+            "maxLength": 1000,
+            "description": "Optional remarks for the quotation"
+          },
+          "price_type": {
+            "type": "string",
+            "enum": ["Inclusive Tax", "Exclusive Tax"],
+            "example": "Inclusive Tax",
+            "description": "Price type for the quotation"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "product_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "123e4567-e89b-12d3-a456-426614174002"
+                },
+                "description": {
+                  "type": "string",
+                  "example": "Custom item description",
+                  "maxLength": 1000
+                },
+                "rate": {
+                  "type": "number",
+                  "format": "decimal",
+                  "example": 150.50,
+                  "minimum": 0
+                },
+                "discount": {
+                  "type": "number",
+                  "format": "decimal",
+                  "example": 10.00,
+                  "minimum": 0
+                },
+                "discount_type": {
+                  "type": "string",
+                  "enum": ["PERCENTAGE", "PER_PIECE"],
+                  "example": "PERCENTAGE"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": ["BOX", "CU.FEET", "CDM", "DOZEN", "KGS", "METER", "PCS", "R.FEET", "SET", "SQ.MT", "SQ.FT", "SQ.FT (Inches)"],
+                  "example": "PCS"
+                },
+                "location_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "123e4567-e89b-12d3-a456-426614174003"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "example": 1,
+                  "minimum": 1,
+                  "default": 1,
+                  "description": "Quantity of the item"
                 }
               },
               "required": ["product_id", "rate"]
@@ -886,6 +1033,13 @@
                   "type": "string",
                   "format": "uuid",
                   "example": "123e4567-e89b-12d3-a456-426614174003"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "example": 1,
+                  "minimum": 1,
+                  "default": 1,
+                  "description": "Quantity of the item"
                 }
               },
               "required": ["product_id", "rate"]

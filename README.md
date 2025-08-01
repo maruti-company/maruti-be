@@ -292,10 +292,10 @@ Manage locations where products are used:
 
 ### Quotation Management
 Manage customer quotations with items and images:
-- **Fields**: Quotation Date (required), Customer ID (required), Last Shared Date (optional), PDF Path (auto-generated)
-- **Items**: Product ID (required), Description (optional), Rate (required), Discount (optional), Unit (auto-filled from product), Images (optional), Location ID (optional)
+- **Fields**: Quotation Date (required), Customer ID (required), Last Shared Date (optional), Remarks (optional, max 1000 chars), Price Type (Inclusive Tax/Exclusive Tax, default: Inclusive Tax), PDF Path (auto-generated)
+- **Items**: Product ID (required), Description (optional), Rate (required), Discount (optional), Unit (auto-filled from product), Images (optional, max 1 per item), Location ID (optional), Quantity (positive integer, default: 1)
 - **Features**: Pagination, customer filtering, date range filtering, image upload to S3, automatic unit assignment, **PDF generation and storage**, **public access links**
-- **Validation**: Rate/discount as positive decimals, max 10 images per item (5MB each), proper foreign key relationships
+- **Validation**: Rate/discount as positive decimals, max 1 image per item (5MB each), proper foreign key relationships, quantity as positive integer
 - **Business Logic**: Deleting quotation deletes all items and PDF, employees cannot delete quotations, automatic S3 cleanup
 - **Public Access**: Shareable links valid for 3 months after sharing, no authentication required
 - **Image Storage**: AWS S3 integration with organized folder structure (`quotations/{quotation_id}/items/`), path storage in database

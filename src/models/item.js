@@ -1,6 +1,6 @@
 'use strict';
 const { Model, DataTypes } = require('sequelize');
-const { PRODUCT_UNITS, DISCOUNT_TYPES } = require('../utils/constants');
+const { PRODUCT_UNITS, DISCOUNT_TYPES, IMAGE_CONFIG } = require('../utils/constants');
 
 module.exports = sequelize => {
   class Item extends Model {
@@ -122,17 +122,22 @@ module.exports = sequelize => {
         type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: true,
         defaultValue: [],
-        validate: {
-          customValidator(value) {
-            if (value && value.length > 10) {
-              throw new Error('Maximum 10 images allowed per item');
-            }
-          },
-        },
       },
       location_id: {
         type: DataTypes.UUID,
         allowNull: true,
+      },
+      quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1,
+        validate: {
+          min: {
+            args: [1],
+            msg: 'Quantity must be a positive integer',
+          },
+        },
+        comment: 'Quantity of the item (positive integer, default 1)',
       },
     },
     {

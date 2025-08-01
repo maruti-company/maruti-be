@@ -6,6 +6,7 @@ const {
   SUCCESS_MESSAGES,
   PAGINATION,
   QUOTATION_CONFIG,
+  IMAGE_CONFIG,
 } = require('../utils/constants');
 const { uploadMultipleImages, deleteMultipleImages } = require('../services/s3Service');
 const { generateAndUploadQuotationPDF, deleteQuotationPDF } = require('../services/pdfService');
@@ -15,7 +16,14 @@ const { generateAndUploadQuotationPDF, deleteQuotationPDF } = require('../servic
  */
 const createQuotation = async (req, res) => {
   try {
-    const { quotation_date, customer_id, last_shared_date, items: itemsData } = req.body;
+    const {
+      quotation_date,
+      customer_id,
+      last_shared_date,
+      remarks,
+      price_type,
+      items: itemsData,
+    } = req.body;
     const files = req.files || [];
 
     // Parse items if it's a string
@@ -58,6 +66,8 @@ const createQuotation = async (req, res) => {
           quotation_date,
           customer_id,
           last_shared_date,
+          remarks,
+          price_type,
         },
         { transaction: t }
       );
@@ -66,7 +76,28 @@ const createQuotation = async (req, res) => {
       const processedItems = [];
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        const itemFiles = files.filter(file => file.fieldname === `items[${i}][images]`);
+
+        // Try different field name formats for files
+        let itemFiles = files.filter(file => file.fieldname === `items[${i}][images]`);
+        if (itemFiles.length === 0) {
+          itemFiles = files.filter(file => file.fieldname === `item_images_${i}`);
+        }
+        if (itemFiles.length === 0) {
+          itemFiles = files.filter(file => file.fieldname === `images_${i}`);
+        }
+        if (itemFiles.length === 0) {
+          itemFiles = files.filter(file => file.fieldname === `item_${i}_images`);
+        }
+        if (itemFiles.length === 0) {
+          itemFiles = files.filter(file => file.fieldname === `files_${i}`);
+        }
+
+        // Validate number of images per item
+        if (itemFiles.length > IMAGE_CONFIG.MAX_IMAGES_PER_ITEM) {
+          throw new Error(
+            `Item ${i + 1}: Maximum ${IMAGE_CONFIG.MAX_IMAGES_PER_ITEM} image allowed per item`
+          );
+        }
 
         // Upload images for this item
         let imagePaths = [];
@@ -89,6 +120,7 @@ const createQuotation = async (req, res) => {
             unit,
             images: imagePaths,
             location_id: item.location_id,
+            quantity: item.quantity || 1,
           },
           { transaction: t }
         );
@@ -338,7 +370,14 @@ const getQuotationById = async (req, res) => {
 const updateQuotation = async (req, res) => {
   try {
     const { id } = req.params;
-    const { quotation_date, customer_id, last_shared_date, items: itemsData } = req.body;
+    const {
+      quotation_date,
+      customer_id,
+      last_shared_date,
+      remarks,
+      price_type,
+      items: itemsData,
+    } = req.body;
     const files = req.files || [];
 
     // Parse items if it's a string
@@ -379,6 +418,8 @@ const updateQuotation = async (req, res) => {
       if (quotation_date) updateData.quotation_date = quotation_date;
       if (customer_id) updateData.customer_id = customer_id;
       if (last_shared_date) updateData.last_shared_date = last_shared_date;
+      if (remarks !== undefined) updateData.remarks = remarks;
+      if (price_type) updateData.price_type = price_type;
 
       if (Object.keys(updateData).length > 0) {
         await existingQuotation.update(updateData, { transaction: t });
@@ -437,6 +478,13 @@ const updateQuotation = async (req, res) => {
             itemFiles = files.filter(file => file.fieldname === `files_${i}`);
           }
 
+          // Validate number of images per item
+          if (itemFiles.length > IMAGE_CONFIG.MAX_IMAGES_PER_ITEM) {
+            throw new Error(
+              `Item ${i + 1}: Maximum ${IMAGE_CONFIG.MAX_IMAGES_PER_ITEM} image allowed per item`
+            );
+          }
+
           // Upload images for this item
           let imagePaths = [];
           if (itemFiles.length > 0) {
@@ -458,6 +506,7 @@ const updateQuotation = async (req, res) => {
               unit,
               images: imagePaths,
               location_id: item.location_id,
+              quantity: item.quantity || 1,
             },
             { transaction: t }
           );

@@ -133,8 +133,14 @@ const DISCOUNT_TYPES = {
   PER_PIECE: 'PER_PIECE',
 };
 
+// Price Types for Quotations
+const PRICE_TYPES = {
+  INCLUSIVE_TAX: 'Inclusive Tax',
+  EXCLUSIVE_TAX: 'Exclusive Tax',
+};
+
 const IMAGE_CONFIG = {
-  MAX_IMAGES_PER_ITEM: 10,
+  MAX_IMAGES_PER_ITEM: 1,
   MAX_FILE_SIZE_MB: 5,
   MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024, // 5MB in bytes
   ALLOWED_MIME_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
@@ -173,6 +179,7 @@ module.exports = {
   REFERENCE_CATEGORIES,
   PRODUCT_UNITS,
   DISCOUNT_TYPES,
+  PRICE_TYPES,
   IMAGE_CONFIG,
   FILE_CONFIG,
   QUOTATION_CONFIG,

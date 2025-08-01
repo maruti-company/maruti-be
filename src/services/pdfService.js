@@ -198,7 +198,7 @@ const addImagesToPDF = async (doc, images, startY, margin, pageWidth) => {
 };
 
 /**
- * Generate PDF for a quotation
+ * Generate PDF for a quotation matching the provided format
  * @param {Object} quotation - Quotation data with items and customer
  * @param {string} quotationId - Quotation ID for file naming
  * @returns {Promise<Buffer>} - PDF buffer
@@ -209,195 +209,24 @@ const generateQuotationPDF = async (quotation, quotationId) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 10;
     const contentWidth = pageWidth - margin * 2;
 
     let yPosition = margin;
-    const lineHeight = 7;
-    const sectionGap = 15;
 
-    // Set font styles
-    const titleFontSize = 24;
-    const subtitleFontSize = 16;
-    const normalFontSize = 12;
-    const smallFontSize = 10;
+    // === HEADER SECTION ===
+    await addPDFHeader(doc, quotation, pageWidth, margin, yPosition);
+    yPosition = 60; // Fixed position after header
 
-    // Header Section
-    doc.setFontSize(titleFontSize);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(44, 62, 80); // Dark blue-gray
-    doc.text('MARUTI LAMINATES', pageWidth / 2, yPosition, { align: 'center' });
-
-    yPosition += lineHeight + 5;
-
-    doc.setFontSize(smallFontSize);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text('Professional Laminates & Interior Solutions', pageWidth / 2, yPosition, {
-      align: 'center',
-    });
-
-    yPosition += lineHeight + 5;
-
-    // Contact Information - Fixed formatting
-    doc.setFontSize(smallFontSize);
-    doc.text('Phone: +91 1234567890', pageWidth / 2, yPosition, {
-      align: 'center',
-    });
-    yPosition += lineHeight;
-    doc.text('Email: info@marutilaminates.com', pageWidth / 2, yPosition, {
-      align: 'center',
-    });
-    yPosition += lineHeight;
-    doc.text('Address: 123 Main Street, City, State - 123456', pageWidth / 2, yPosition, {
-      align: 'center',
-    });
-
-    yPosition += lineHeight * 2 + sectionGap;
-
-    // Quotation Details Section
-    doc.setFontSize(subtitleFontSize);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(44, 62, 80);
-    doc.text('QUOTATION DETAILS', margin, yPosition);
-
-    yPosition += lineHeight + 5;
-
-    // Quotation info table
-    const quotationInfo = [
-      ['Quotation ID:', quotation.id],
-      ['Quotation Date:', new Date(quotation.quotation_date).toLocaleDateString('en-IN')],
-      ['Customer Name:', quotation.customer?.name || 'N/A'],
-      ['Customer Mobile:', quotation.customer?.mobile_no || 'N/A'],
-    ];
-
-    if (quotation.last_shared_date) {
-      quotationInfo.push([
-        'Last Shared:',
-        new Date(quotation.last_shared_date).toLocaleDateString('en-IN'),
-      ]);
-    }
-
-    doc.setFontSize(normalFontSize);
-    doc.setFont('helvetica', 'normal');
-
-    quotationInfo.forEach(([label, value]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(44, 62, 80);
-      doc.text(label, margin, yPosition);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(50, 50, 50);
-      doc.text(value, margin + 50, yPosition);
-
-      yPosition += lineHeight;
-    });
-
-    yPosition += sectionGap;
-
-    // Items Section
-    if (quotation.items && quotation.items.length > 0) {
-      doc.setFontSize(subtitleFontSize);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(44, 62, 80);
-      doc.text('ITEMS DETAILS', margin, yPosition);
-
-      yPosition += lineHeight + 5;
-
-      // Check if we need a new page for items
-      const itemsPerPage = Math.floor((pageHeight - yPosition - margin) / (lineHeight * 8));
-      let currentItem = 0;
-
-      while (currentItem < quotation.items.length) {
-        // Check if we need a new page
-        if (yPosition > pageHeight - 100) {
-          doc.addPage();
-          yPosition = margin;
-        }
-
-        const item = quotation.items[currentItem];
-
-        // Item header
-        doc.setFontSize(normalFontSize);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(52, 73, 94);
-        doc.text(`Item ${currentItem + 1}: ${item.product?.name || 'Product'}`, margin, yPosition);
-
-        yPosition += lineHeight;
-
-        // Item details
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(smallFontSize);
-        doc.setTextColor(50, 50, 50);
-
-        const itemDetails = [
-          ['Product:', item.product?.name || 'N/A'],
-          ['Description:', item.description || 'N/A'],
-          ['Rate:', parseFloat(item.rate).toFixed(2)],
-          ['Unit:', item.unit || 'N/A'],
-        ];
-
-        if (item.discount && item.discount > 0) {
-          itemDetails.push([
-            'Discount:',
-            `${parseFloat(item.discount).toFixed(2)} ${item.discount_type || 'PERCENTAGE'}`,
-          ]);
-        }
-
-        if (item.location?.name) {
-          itemDetails.push(['Location:', item.location.name]);
-        }
-
-        itemDetails.forEach(([label, value]) => {
-          doc.setFont('helvetica', 'bold');
-          doc.text(label, margin + 5, yPosition);
-
-          doc.setFont('helvetica', 'normal');
-          doc.text(value, margin + 35, yPosition);
-
-          yPosition += lineHeight;
-        });
-
-        // Add images if available
-        if (item.images && item.images.length > 0) {
-          yPosition = await addImagesToPDF(doc, item.images, yPosition, margin, pageWidth);
-        }
-
-        yPosition += sectionGap;
-        currentItem++;
-      }
-    } else {
-      doc.setFontSize(normalFontSize);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(100, 100, 100);
-      doc.text('No items added to this quotation yet.', margin, yPosition);
-      yPosition += lineHeight + sectionGap;
-    }
-
-    // Footer Section
-    yPosition = pageHeight - 40;
-
-    // Add a line
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    // === CUSTOMER INFO SECTION ===
+    yPosition = addCustomerInfo(doc, quotation, margin, pageWidth, yPosition);
     yPosition += 10;
 
-    doc.setFontSize(smallFontSize);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text('Thank you for choosing Maruti Laminates!', pageWidth / 2, yPosition, {
-      align: 'center',
-    });
+    // === ITEMS TABLE ===
+    yPosition = await addItemsTable(doc, quotation, margin, pageWidth, pageHeight, yPosition);
 
-    yPosition += lineHeight;
-    doc.text('For any queries, please contact us at +91 1234567890', pageWidth / 2, yPosition, {
-      align: 'center',
-    });
-
-    yPosition += lineHeight;
-    doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, pageWidth / 2, yPosition, {
-      align: 'center',
-    });
+    // === FOOTER SECTION ===
+    addPDFFooter(doc, pageWidth, pageHeight, margin);
 
     // Return PDF as buffer
     return doc.output('arraybuffer');
@@ -405,6 +234,357 @@ const generateQuotationPDF = async (quotation, quotationId) => {
     console.error('PDF generation error:', error);
     throw new Error(`Failed to generate PDF: ${error.message}`);
   }
+};
+
+/**
+ * Add header section with company info and branding
+ */
+const addPDFHeader = async (doc, quotation, pageWidth, margin, yPosition) => {
+  // Red header background
+  doc.setFillColor(220, 20, 20); // Red color
+  doc.rect(0, 0, pageWidth, 25, 'F');
+
+  // QUOTATION title in white
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('QUOTATION', pageWidth / 2, 15, { align: 'center' });
+
+  // Company name and details
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('MARUTI LAMINATES PVT. LTD.', margin, 35);
+
+  // Company address and contact details
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  const companyDetails = [
+    'Shop No. 235 & 236, New Timber Market, Nr. Radhakrishna Main, Surat',
+    'Gala No. 3, Ground Floor, Shivani Bldg, Katargam-Udhna Ring Road,',
+    'Surat - 395004, Gujarat, India',
+    'Mobile: +91 98765 43210 | Email: marutilaminates@yahoo.com',
+  ];
+
+  let detailY = 40;
+  companyDetails.forEach(detail => {
+    doc.text(detail, margin, detailY);
+    detailY += 4;
+  });
+
+  // Add logo placeholder (right side)
+  doc.setDrawColor(200, 200, 200);
+  doc.rect(pageWidth - 70, 30, 60, 25);
+  doc.setFontSize(10);
+  doc.setTextColor(150, 150, 150);
+  doc.text('LOGO', pageWidth - 40, 45, { align: 'center' });
+};
+
+/**
+ * Add customer information section
+ */
+const addCustomerInfo = (doc, quotation, margin, pageWidth, yPosition) => {
+  // Customer details section
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+
+  // Left side - To section
+  doc.setFont('helvetica', 'bold');
+  doc.text('To:', margin, yPosition);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Name:', margin, yPosition + 5);
+  doc.text(quotation.customer?.name || 'N/A', margin + 15, yPosition + 5);
+  doc.text('Address:', margin, yPosition + 10);
+  doc.text(quotation.customer?.address || 'N/A', margin + 20, yPosition + 10);
+  doc.text('Mobile:', margin, yPosition + 20);
+  doc.text(quotation.customer?.mobile_no || 'N/A', margin + 20, yPosition + 20);
+
+  // Right side - Quote details
+  const rightX = pageWidth - 80;
+  doc.text('Quote No.:', rightX, yPosition);
+  doc.text(quotation.id.substring(0, 8), rightX + 25, yPosition);
+  doc.text('Date:', rightX, yPosition + 5);
+  doc.text(
+    new Date(quotation.quotation_date).toLocaleDateString('en-IN'),
+    rightX + 15,
+    yPosition + 5
+  );
+
+  return yPosition + 30;
+};
+
+/**
+ * Get column alignment based on column index
+ */
+const getColumnAlignment = colIndex => {
+  // Column alignments: 0=Sr, 1=Description, 2=Product, 3=Location, 4=Rate, 5=Unit, 6=Qty, 7=Less Disc, 8=Amount, 9=Image
+  const alignments = [
+    'center',
+    'left',
+    'left',
+    'left',
+    'right',
+    'center',
+    'center',
+    'right',
+    'right',
+    'center',
+  ];
+  return alignments[colIndex] || 'left';
+};
+
+/**
+ * Get maximum characters for column before wrapping
+ */
+const getMaxCharsForColumn = colIndex => {
+  // Character limits based on column width and content type (not used anymore but kept for reference)
+  const limits = [3, 20, 15, 12, 8, 5, 3, 8, 8, 0]; // 0 for image column
+  return limits[colIndex] || 10;
+};
+
+/**
+ * Add items table with all database fields
+ */
+const addItemsTable = async (doc, quotation, margin, pageWidth, pageHeight, startY) => {
+  if (!quotation.items || quotation.items.length === 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.text('No items in this quotation', margin, startY);
+    return startY + 20;
+  }
+
+  let yPosition = startY;
+  const tableWidth = pageWidth - margin * 2;
+  const rowHeight = 25; // Increased from 20 to accommodate text wrapping
+  const headerHeight = 15;
+
+  // Table headers
+  const headers = [
+    'Sr',
+    'Description',
+    'Product',
+    'Location',
+    'Rate',
+    'Unit',
+    'Qty',
+    'Less Disc',
+    'Amount',
+    'Image',
+  ];
+  // Adjusted column widths to fit within page (total should be around 190mm for A4)
+  const colWidths = [12, 28, 22, 20, 18, 12, 12, 18, 20, 28]; // Total: 190mm
+
+  // Draw header background
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPosition, tableWidth, headerHeight, 'F');
+
+  // Draw header borders and text
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+
+  let currentX = margin;
+  headers.forEach((header, index) => {
+    // Draw cell border
+    doc.rect(currentX, yPosition, colWidths[index], headerHeight);
+
+    // Add header text (centered)
+    doc.text(header, currentX + colWidths[index] / 2, yPosition + 10, { align: 'center' });
+    currentX += colWidths[index];
+  });
+
+  yPosition += headerHeight;
+
+  // Draw table rows
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+
+  for (let i = 0; i < quotation.items.length; i++) {
+    const item = quotation.items[i];
+
+    // Check if we need a new page
+    if (yPosition + rowHeight > pageHeight - 50) {
+      doc.addPage();
+      yPosition = margin;
+
+      // Redraw headers on new page
+      doc.setFillColor(240, 240, 240);
+      doc.rect(margin, yPosition, tableWidth, headerHeight, 'F');
+
+      currentX = margin;
+      doc.setFont('helvetica', 'bold');
+      headers.forEach((header, index) => {
+        doc.rect(currentX, yPosition, colWidths[index], headerHeight);
+        doc.text(header, currentX + colWidths[index] / 2, yPosition + 10, { align: 'center' });
+        currentX += colWidths[index];
+      });
+      yPosition += headerHeight;
+      doc.setFont('helvetica', 'normal');
+    }
+
+    // Calculate values
+    const rate = parseFloat(item.rate) || 0;
+    const quantity = parseInt(item.quantity) || 1;
+    const discount = parseFloat(item.discount) || 0;
+    let discountAmount = 0;
+
+    if (item.discount_type === 'PERCENTAGE') {
+      discountAmount = (rate * quantity * discount) / 100;
+    } else if (item.discount_type === 'PER_PIECE') {
+      discountAmount = discount * quantity;
+    }
+
+    const amount = rate * quantity - discountAmount;
+
+    // Row data
+    const rowData = [
+      (i + 1).toString(),
+      item.description || item.product?.description || 'N/A',
+      item.product?.name || 'N/A',
+      item.location?.name || 'N/A',
+      rate.toFixed(2),
+      item.unit || 'PCS',
+      quantity.toString(),
+      discountAmount.toFixed(2),
+      amount.toFixed(2),
+      '', // Image column - will be handled separately
+    ];
+
+    // Draw row cells and add text
+    currentX = margin;
+    rowData.forEach((cellData, colIndex) => {
+      // Draw cell border
+      doc.rect(currentX, yPosition, colWidths[colIndex], rowHeight);
+
+      if (colIndex < rowData.length - 1) {
+        // Skip image column for text
+        // Always use text wrapping to prevent overflow
+        const maxWidth = colWidths[colIndex] - 4; // Leave padding
+        const lines = doc.splitTextToSize(cellData, maxWidth);
+        const lineHeight = 3.5;
+        let textY = yPosition + 5;
+        const maxLines = Math.floor((rowHeight - 6) / lineHeight);
+
+        // Determine alignment based on column type
+        const align = getColumnAlignment(colIndex);
+
+        lines.slice(0, maxLines).forEach((line, lineIndex) => {
+          let textX;
+
+          if (align === 'center') {
+            textX = currentX + colWidths[colIndex] / 2;
+          } else if (align === 'right') {
+            textX = currentX + colWidths[colIndex] - 2;
+          } else {
+            textX = currentX + 2;
+          }
+
+          doc.text(line, textX, textY, { align: align });
+          textY += lineHeight;
+        });
+
+        // If text was truncated, add ellipsis
+        if (lines.length > maxLines) {
+          const lastLineY = yPosition + 5 + (maxLines - 1) * lineHeight;
+          const ellipsisX =
+            align === 'right'
+              ? currentX + colWidths[colIndex] - 8
+              : currentX + colWidths[colIndex] - 6;
+          doc.text('...', ellipsisX, lastLineY);
+        }
+      }
+
+      currentX += colWidths[colIndex];
+    });
+
+    // Add image in the last column if available
+    if (item.images && item.images.length > 0) {
+      try {
+        const imagePath = item.images[0]; // Use first image
+        const { base64: base64Image } = await downloadImageAsBase64(imagePath);
+
+        // Calculate image dimensions to fit in cell (maintain aspect ratio)
+        const maxImageWidth = colWidths[9] - 4;
+        const maxImageHeight = rowHeight - 4;
+        const imageX = currentX - colWidths[9] + 2;
+        const imageY = yPosition + 2;
+
+        // Maintain aspect ratio while fitting in cell
+        let imageWidth = maxImageWidth;
+        let imageHeight = maxImageHeight;
+
+        // Center the image in the cell
+        const centerX = imageX + (maxImageWidth - imageWidth) / 2;
+        const centerY = imageY + (maxImageHeight - imageHeight) / 2;
+
+        doc.addImage(base64Image, 'JPEG', centerX, centerY, imageWidth, imageHeight);
+      } catch (error) {
+        console.error('Error adding image to table:', error);
+        // Add placeholder text
+        doc.setFontSize(6);
+        doc.text('Image', currentX - colWidths[9] + colWidths[9] / 2, yPosition + 10, {
+          align: 'center',
+        });
+        doc.setFontSize(8);
+      }
+    }
+
+    yPosition += rowHeight;
+  }
+
+  return yPosition + 10;
+};
+
+/**
+ * Add footer with terms and conditions
+ */
+const addPDFFooter = (doc, pageWidth, pageHeight, margin) => {
+  const footerY = pageHeight - 60;
+
+  // Terms & Conditions section
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Terms & Conditions:', margin, footerY);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+
+  const terms = [
+    '1. Quotation Valid for 7 Days only.',
+    '2. 100% Advance Payment at the time of order.',
+    '3. No Guaranty / Warranty on decorative products.',
+    '4. Prices are exclusive of GST, GST as applicable will be charged at the time of Bill',
+    '5. Material once delivered will not be taken back.',
+    '6. Order once placed will not be cancelled, replaced or exchanged.',
+    'SUBJECT TO AHMEDABAD JURISDICTION',
+  ];
+
+  let termY = footerY + 5;
+  terms.forEach(term => {
+    doc.text(term, margin, termY);
+    termY += 4;
+  });
+
+  // Seal & Signature section
+  doc.setFillColor(220, 20, 20);
+  doc.rect(pageWidth - 80, footerY + 25, 70, 15, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Seal & Signature', pageWidth - 45, footerY + 35, { align: 'center' });
+
+  // Thank you message
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.text(
+    'Thanks for business with us !!! Please visit us again !!!',
+    pageWidth / 2,
+    pageHeight - 10,
+    { align: 'center' }
+  );
 };
 
 /**

@@ -1,5 +1,6 @@
 'use strict';
 const { Model, DataTypes } = require('sequelize');
+const { PRICE_TYPES } = require('../utils/constants');
 
 module.exports = sequelize => {
   class Quotation extends Model {
@@ -68,6 +69,29 @@ module.exports = sequelize => {
         type: DataTypes.STRING,
         allowNull: true,
         comment: 'S3 path to the generated PDF file',
+      },
+      remarks: {
+        type: DataTypes.STRING(1000),
+        allowNull: true,
+        validate: {
+          len: {
+            args: [0, 1000],
+            msg: 'Remarks cannot exceed 1000 characters',
+          },
+        },
+        comment: 'Optional remarks for the quotation (max 1000 characters)',
+      },
+      price_type: {
+        type: DataTypes.ENUM(Object.values(PRICE_TYPES)),
+        allowNull: false,
+        defaultValue: PRICE_TYPES.INCLUSIVE_TAX,
+        validate: {
+          isIn: {
+            args: [Object.values(PRICE_TYPES)],
+            msg: 'Invalid price type',
+          },
+        },
+        comment: 'Price type for the quotation - Inclusive Tax or Exclusive Tax',
       },
     },
     {

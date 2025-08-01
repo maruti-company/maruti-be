@@ -107,11 +107,6 @@ const uploadImage = async (fileBuffer, fileName, mimeType, quotationId) => {
  */
 const uploadMultipleImages = async (files, quotationId) => {
   try {
-    // Validate number of files
-    if (files.length > IMAGE_CONFIG.MAX_IMAGES_PER_ITEM) {
-      throw new Error(`Maximum ${IMAGE_CONFIG.MAX_IMAGES_PER_ITEM} images allowed per item`);
-    }
-
     const uploadPromises = files.map(file =>
       uploadImage(file.buffer, file.originalname, file.mimetype, quotationId)
     );
