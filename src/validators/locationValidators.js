@@ -61,7 +61,7 @@ const getLocationsValidator = Joi.object({
       'number.min': 'Limit must be at least 1',
       'number.max': `Limit cannot exceed ${PAGINATION.MAX_LIMIT}`,
     }),
-  name: Joi.string().max(100).optional().messages({
+  name: Joi.string().max(100).optional().allow('').messages({
     'string.max': 'Name filter cannot exceed 100 characters',
   }),
 });

@@ -58,7 +58,7 @@ const getLocations = async (req, res) => {
 
     // Build where clause for filtering
     const whereClause = {};
-    if (name) {
+    if (name && name.trim() !== '') {
       whereClause.name = {
         [Op.iLike]: `%${name}%`,
       };

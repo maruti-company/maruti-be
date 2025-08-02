@@ -42,10 +42,10 @@ const updateUserValidator = Joi.object({
   }),
   password: Joi.string()
     .min(PASSWORD_CONFIG.MIN_LENGTH)
+    .allow('')
     .optional()
     .messages({
       'string.min': `Password must be at least ${PASSWORD_CONFIG.MIN_LENGTH} characters long`,
-      'string.empty': 'Password cannot be empty',
     }),
   role: Joi.number()
     .valid(...Object.values(USER_ROLES))

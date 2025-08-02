@@ -69,7 +69,7 @@ const getProducts = async (req, res) => {
     if (unit) {
       whereClause.unit = unit;
     }
-    if (name) {
+    if (name && name.trim() !== '') {
       whereClause.name = {
         [Op.iLike]: `%${name}%`,
       };

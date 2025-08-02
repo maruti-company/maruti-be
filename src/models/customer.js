@@ -108,6 +108,11 @@ module.exports = sequelize => {
         {
           fields: ['reference_id'],
         },
+        {
+          unique: true,
+          fields: ['name', 'mobile_no'],
+          name: 'unique_name_mobile_customers',
+        },
       ],
     }
   );

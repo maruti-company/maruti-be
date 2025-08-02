@@ -12,12 +12,12 @@ const createReferenceValidator = Joi.object({
     .pattern(/^[+]?[\d\s\-()]+$/)
     .min(10)
     .max(15)
+    .allow('', null)
     .optional()
     .messages({
       'string.pattern.base': 'Please provide a valid mobile number',
       'string.min': 'Mobile number must be at least 10 characters long',
       'string.max': 'Mobile number cannot exceed 15 characters',
-      'string.empty': 'Mobile number cannot be empty',
     }),
   category: Joi.string()
     .valid(...Object.values(REFERENCE_CATEGORIES))
@@ -39,12 +39,12 @@ const updateReferenceValidator = Joi.object({
     .pattern(/^[+]?[\d\s\-()]+$/)
     .min(10)
     .max(15)
+    .allow('', null)
     .optional()
     .messages({
       'string.pattern.base': 'Please provide a valid mobile number',
       'string.min': 'Mobile number must be at least 10 characters long',
       'string.max': 'Mobile number cannot exceed 15 characters',
-      'string.empty': 'Mobile number cannot be empty',
     }),
   category: Joi.string()
     .valid(...Object.values(REFERENCE_CATEGORIES))

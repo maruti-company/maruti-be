@@ -183,6 +183,14 @@ const updateUser = async (req, res) => {
       updateData.email = updateData.email.toLowerCase();
     }
 
+    // Handle password update - remove empty passwords to keep current password
+    if (
+      updateData.password !== undefined &&
+      (updateData.password === '' || updateData.password === null)
+    ) {
+      delete updateData.password;
+    }
+
     // Update user
     await user.update(updateData);
 

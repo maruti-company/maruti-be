@@ -8,7 +8,7 @@ const createProductValidator = Joi.object({
     'any.required': 'Product name is required',
     'string.empty': 'Product name cannot be empty',
   }),
-  description: Joi.string().max(1000).optional().allow('').messages({
+  description: Joi.string().max(1000).optional().allow('', null).messages({
     'string.max': 'Description cannot exceed 1000 characters',
   }),
   unit: Joi.string()
@@ -27,7 +27,7 @@ const updateProductValidator = Joi.object({
     'string.max': 'Product name cannot exceed 200 characters',
     'string.empty': 'Product name cannot be empty',
   }),
-  description: Joi.string().max(1000).optional().allow('').messages({
+  description: Joi.string().max(1000).optional().allow('', null).messages({
     'string.max': 'Description cannot exceed 1000 characters',
   }),
   unit: Joi.string()
@@ -82,7 +82,7 @@ const getProductsValidator = Joi.object({
     .messages({
       'any.only': `Unit must be one of: ${Object.values(PRODUCT_UNITS).join(', ')}`,
     }),
-  name: Joi.string().max(200).optional().messages({
+  name: Joi.string().max(200).optional().allow('').messages({
     'string.max': 'Name filter cannot exceed 200 characters',
   }),
 });

@@ -91,6 +91,11 @@ module.exports = sequelize => {
         {
           fields: ['mobile_no'],
         },
+        {
+          unique: true,
+          fields: ['name', 'mobile_no'],
+          name: 'unique_name_mobile_references',
+        },
       ],
     }
   );

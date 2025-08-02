@@ -15,10 +15,13 @@ const createReference = async (req, res) => {
   try {
     const { name, mobile_no, category } = req.body;
 
+    // Convert empty mobile_no to null for consistent unique constraint behavior
+    const mobileNumber = mobile_no === '' ? null : mobile_no;
+
     // Create new reference
     const newReference = await Reference.create({
       name,
-      mobile_no,
+      mobile_no: mobileNumber,
       category,
     });
 
@@ -166,6 +169,11 @@ const updateReference = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    // Convert empty mobile_no to null for consistent unique constraint behavior
+    if (updateData.mobile_no !== undefined && updateData.mobile_no === '') {
+      updateData.mobile_no = null;
+    }
 
     // Find reference
     const reference = await Reference.findByPk(id);

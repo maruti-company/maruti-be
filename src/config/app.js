@@ -41,14 +41,7 @@ const createApp = () => {
   );
 
   // CORS configuration
-  app.use(
-    cors({
-      origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    })
-  );
+  app.use(cors());
 
   // Logging middleware
   if (process.env.NODE_ENV === 'development') {

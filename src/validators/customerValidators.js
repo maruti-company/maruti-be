@@ -20,7 +20,7 @@ const createCustomerValidator = Joi.object({
       'any.required': 'Mobile number is required',
       'string.empty': 'Mobile number cannot be empty',
     }),
-  address: Joi.string().max(500).optional().allow('').messages({
+  address: Joi.string().max(500).optional().allow('', null).messages({
     'string.max': 'Address cannot exceed 500 characters',
   }),
   reference_id: Joi.string().uuid().optional().messages({
@@ -45,7 +45,7 @@ const updateCustomerValidator = Joi.object({
       'string.max': 'Mobile number cannot exceed 15 characters',
       'string.empty': 'Mobile number cannot be empty',
     }),
-  address: Joi.string().max(500).optional().allow('').messages({
+  address: Joi.string().max(500).optional().allow('', null).messages({
     'string.max': 'Address cannot exceed 500 characters',
   }),
   reference_id: Joi.string().uuid().optional().allow(null).messages({
