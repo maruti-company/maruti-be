@@ -93,6 +93,17 @@ module.exports = sequelize => {
           },
         },
       },
+      gst_number: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        validate: {
+          len: {
+            args: [0, 255],
+            msg: 'GST number cannot exceed 255 characters',
+          },
+        },
+        comment: 'GST number of the customer (optional)',
+      },
     },
     {
       sequelize,

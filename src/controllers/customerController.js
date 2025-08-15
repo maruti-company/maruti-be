@@ -7,11 +7,14 @@ const { HTTP_STATUS, ERROR_MESSAGES, SUCCESS_MESSAGES, PAGINATION } = require('.
  */
 const createCustomer = async (req, res) => {
   try {
-    const { name, mobile_no, address, reference_id } = req.body;
+    const { name, mobile_no, address, reference_id, gst_number } = req.body;
+
+    // Process reference_id: convert empty string to null
+    const processedReferenceId = reference_id && reference_id.trim() !== '' ? reference_id : null;
 
     // If reference_id is provided, verify it exists
-    if (reference_id) {
-      const referenceExists = await Reference.findByPk(reference_id);
+    if (processedReferenceId) {
+      const referenceExists = await Reference.findByPk(processedReferenceId);
       if (!referenceExists) {
         return res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
@@ -24,8 +27,9 @@ const createCustomer = async (req, res) => {
     const newCustomer = await Customer.create({
       name,
       mobile_no,
-      address,
-      reference_id,
+      address: address && address.trim() !== '' ? address : null,
+      reference_id: processedReferenceId,
+      gst_number: gst_number && gst_number.trim() !== '' ? gst_number : null,
     });
 
     // Fetch the created customer with reference details
@@ -195,9 +199,33 @@ const updateCustomer = async (req, res) => {
       });
     }
 
+    // Process updateData to handle empty strings
+    const processedUpdateData = { ...updateData };
+    if (processedUpdateData.address !== undefined) {
+      processedUpdateData.address =
+        processedUpdateData.address && processedUpdateData.address.trim() !== ''
+          ? processedUpdateData.address
+          : null;
+    }
+    if (processedUpdateData.gst_number !== undefined) {
+      processedUpdateData.gst_number =
+        processedUpdateData.gst_number && processedUpdateData.gst_number.trim() !== ''
+          ? processedUpdateData.gst_number
+          : null;
+    }
+    if (processedUpdateData.reference_id !== undefined) {
+      processedUpdateData.reference_id =
+        processedUpdateData.reference_id && processedUpdateData.reference_id.trim() !== ''
+          ? processedUpdateData.reference_id
+          : null;
+    }
+
     // If reference_id is being updated, verify it exists
-    if (updateData.reference_id && updateData.reference_id !== customer.reference_id) {
-      const referenceExists = await Reference.findByPk(updateData.reference_id);
+    if (
+      processedUpdateData.reference_id &&
+      processedUpdateData.reference_id !== customer.reference_id
+    ) {
+      const referenceExists = await Reference.findByPk(processedUpdateData.reference_id);
       if (!referenceExists) {
         return res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
@@ -207,7 +235,7 @@ const updateCustomer = async (req, res) => {
     }
 
     // Update customer
-    await customer.update(updateData);
+    await customer.update(processedUpdateData);
 
     // Fetch updated customer with reference details
     const updatedCustomer = await Customer.findByPk(id, {

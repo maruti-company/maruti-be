@@ -1,4 +1,4 @@
-const { Quotation, Item, Customer, Product, Location, sequelize } = require('../models');
+const { Quotation, Item, Customer, Product, Location, Reference, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const {
   HTTP_STATUS,
@@ -137,7 +137,14 @@ const createQuotation = async (req, res) => {
         {
           model: Customer,
           as: 'customer',
-          attributes: ['id', 'name', 'mobile_no'],
+          attributes: ['id', 'name', 'mobile_no', 'address', 'gst_number'],
+          include: [
+            {
+              model: Reference,
+              as: 'reference',
+              attributes: ['id', 'name', 'category', 'mobile_no'],
+            },
+          ],
         },
         {
           model: Item,
@@ -171,7 +178,14 @@ const createQuotation = async (req, res) => {
           {
             model: Customer,
             as: 'customer',
-            attributes: ['id', 'name', 'mobile_no'],
+            attributes: ['id', 'name', 'mobile_no', 'address', 'gst_number'],
+            include: [
+              {
+                model: Reference,
+                as: 'reference',
+                attributes: ['id', 'name', 'category', 'mobile_no'],
+              },
+            ],
           },
           {
             model: Item,
@@ -255,6 +269,9 @@ const getQuotations = async (req, res) => {
       limit: validLimit,
       offset,
       order: [['createdAt', 'DESC']],
+      // Avoid inflated counts caused by JOINs from hasMany includes
+      distinct: true,
+      col: 'id',
       include: [
         {
           model: Customer,
@@ -319,7 +336,14 @@ const getQuotationById = async (req, res) => {
         {
           model: Customer,
           as: 'customer',
-          attributes: ['id', 'name', 'mobile_no', 'address'],
+          attributes: ['id', 'name', 'mobile_no', 'address', 'gst_number'],
+          include: [
+            {
+              model: Reference,
+              as: 'reference',
+              attributes: ['id', 'name', 'category', 'mobile_no'],
+            },
+          ],
         },
         {
           model: Item,
@@ -341,7 +365,7 @@ const getQuotationById = async (req, res) => {
     });
 
     if (!quotation) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         message: 'Quotation not found',
       });
@@ -520,7 +544,14 @@ const updateQuotation = async (req, res) => {
         {
           model: Customer,
           as: 'customer',
-          attributes: ['id', 'name', 'mobile_no'],
+          attributes: ['id', 'name', 'mobile_no', 'address', 'gst_number'],
+          include: [
+            {
+              model: Reference,
+              as: 'reference',
+              attributes: ['id', 'name', 'category', 'mobile_no'],
+            },
+          ],
         },
         {
           model: Item,
@@ -559,7 +590,14 @@ const updateQuotation = async (req, res) => {
           {
             model: Customer,
             as: 'customer',
-            attributes: ['id', 'name', 'mobile_no'],
+            attributes: ['id', 'name', 'mobile_no', 'address', 'gst_number'],
+            include: [
+              {
+                model: Reference,
+                as: 'reference',
+                attributes: ['id', 'name', 'category', 'mobile_no'],
+              },
+            ],
           },
           {
             model: Item,
@@ -715,7 +753,14 @@ const regeneratePDF = async (req, res) => {
         {
           model: Customer,
           as: 'customer',
-          attributes: ['id', 'name', 'mobile_no'],
+          attributes: ['id', 'name', 'mobile_no', 'address', 'gst_number'],
+          include: [
+            {
+              model: Reference,
+              as: 'reference',
+              attributes: ['id', 'name', 'category', 'mobile_no'],
+            },
+          ],
         },
         {
           model: Item,
@@ -816,7 +861,7 @@ const getPublicQuotation = async (req, res) => {
 
     // Check if quotation has been shared
     if (!quotation.last_shared_date) {
-      return res.status(HTTP_STATUS.FORBIDDEN).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         message: 'This quotation has not been shared yet',
       });
@@ -827,7 +872,7 @@ const getPublicQuotation = async (req, res) => {
     expiryDate.setMonth(expiryDate.getMonth() - QUOTATION_CONFIG.PUBLIC_ACCESS_EXPIRY_MONTHS);
 
     if (quotation.last_shared_date < expiryDate) {
-      return res.status(HTTP_STATUS.FORBIDDEN).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         message: 'This quotation link has expired. Please contact us for a new quotation.',
       });
