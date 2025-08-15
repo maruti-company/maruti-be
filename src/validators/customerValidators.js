@@ -23,8 +23,11 @@ const createCustomerValidator = Joi.object({
   address: Joi.string().max(500).optional().allow('', null).messages({
     'string.max': 'Address cannot exceed 500 characters',
   }),
-  reference_id: Joi.string().uuid().optional().messages({
+  reference_id: Joi.string().uuid().optional().allow('', null).messages({
     'string.guid': 'Reference ID must be a valid UUID',
+  }),
+  gst_number: Joi.string().max(255).optional().allow('', null).messages({
+    'string.max': 'GST number cannot exceed 255 characters',
   }),
 });
 
@@ -50,6 +53,9 @@ const updateCustomerValidator = Joi.object({
   }),
   reference_id: Joi.string().uuid().optional().allow(null).messages({
     'string.guid': 'Reference ID must be a valid UUID',
+  }),
+  gst_number: Joi.string().max(255).optional().allow('', null).messages({
+    'string.max': 'GST number cannot exceed 255 characters',
   }),
 })
   .min(1)
@@ -90,7 +96,7 @@ const getCustomersValidator = Joi.object({
       'number.min': 'Limit must be at least 1',
       'number.max': `Limit cannot exceed ${PAGINATION.MAX_LIMIT}`,
     }),
-  reference_id: Joi.string().uuid().optional().messages({
+  reference_id: Joi.string().uuid().optional().allow('', null).messages({
     'string.guid': 'Reference ID must be a valid UUID',
   }),
   search: Joi.string().max(100).optional().messages({

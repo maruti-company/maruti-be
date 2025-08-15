@@ -15,7 +15,7 @@ const itemSchema = Joi.object({
     'string.guid': 'Product ID must be a valid UUID',
     'any.required': 'Product ID is required',
   }),
-  description: Joi.string().max(1000).optional().messages({
+  description: Joi.string().max(1000).optional().allow(null).empty('').default(null).messages({
     'string.max': 'Description cannot exceed 1000 characters',
   }),
   rate: Joi.number().positive().precision(2).required().messages({
@@ -24,27 +24,40 @@ const itemSchema = Joi.object({
     'number.precision': 'Rate must have maximum 2 decimal places',
     'any.required': 'Rate is required',
   }),
-  discount: Joi.number().positive().precision(2).optional().messages({
-    'number.base': 'Discount must be a valid number',
-    'number.positive': 'Discount must be a positive number',
-    'number.precision': 'Discount must have maximum 2 decimal places',
-  }),
+  discount: Joi.number()
+    .positive()
+    .precision(2)
+    .optional()
+    .allow(null)
+    .empty('')
+    .default(null)
+    .messages({
+      'number.base': 'Discount must be a valid number',
+      'number.positive': 'Discount must be a positive number',
+      'number.precision': 'Discount must have maximum 2 decimal places',
+    }),
   discount_type: Joi.string()
     .valid(...Object.values(DISCOUNT_TYPES))
     .optional()
+    .allow(null)
+    .empty('')
+    .default(null)
     .messages({
       'any.only': `Discount type must be one of: ${Object.values(DISCOUNT_TYPES).join(', ')}`,
     }),
   unit: Joi.string()
     .valid(...Object.values(PRODUCT_UNITS))
     .optional()
+    .allow(null)
+    .empty('')
+    .default(null)
     .messages({
       'any.only': `Unit must be one of: ${Object.values(PRODUCT_UNITS).join(', ')}`,
     }),
-  location_id: Joi.string().uuid().optional().messages({
+  location_id: Joi.string().uuid().optional().allow(null).empty('').default(null).messages({
     'string.guid': 'Location ID must be a valid UUID',
   }),
-  quantity: Joi.number().integer().positive().default(1).messages({
+  quantity: Joi.number().integer().positive().empty('').empty(null).default(1).messages({
     'number.base': 'Quantity must be a valid number',
     'number.integer': 'Quantity must be an integer',
     'number.positive': 'Quantity must be a positive number',
@@ -63,14 +76,16 @@ const createQuotationValidator = Joi.object({
     'string.guid': 'Customer ID must be a valid UUID',
     'any.required': 'Customer ID is required',
   }),
-  last_shared_date: Joi.date().optional().messages({
+  last_shared_date: Joi.date().optional().allow(null).empty('').default(null).messages({
     'date.base': 'Last shared date must be a valid date',
   }),
-  remarks: Joi.string().max(1000).optional().messages({
+  remarks: Joi.string().max(1000).optional().allow(null).empty('').default(null).messages({
     'string.max': 'Remarks cannot exceed 1000 characters',
   }),
   price_type: Joi.string()
     .valid(...Object.values(PRICE_TYPES))
+    .empty('')
+    .empty(null)
     .default(PRICE_TYPES.INCLUSIVE_TAX)
     .messages({
       'any.only': `Price type must be one of: ${Object.values(PRICE_TYPES).join(', ')}`,
@@ -110,15 +125,16 @@ const updateQuotationValidator = Joi.object({
   customer_id: Joi.string().uuid().optional().messages({
     'string.guid': 'Customer ID must be a valid UUID',
   }),
-  last_shared_date: Joi.date().optional().messages({
+  last_shared_date: Joi.date().optional().allow(null, '').messages({
     'date.base': 'Last shared date must be a valid date',
   }),
-  remarks: Joi.string().max(1000).optional().messages({
+  remarks: Joi.string().max(1000).optional().allow(null, '').messages({
     'string.max': 'Remarks cannot exceed 1000 characters',
   }),
   price_type: Joi.string()
     .valid(...Object.values(PRICE_TYPES))
     .optional()
+    .allow('', null)
     .messages({
       'any.only': `Price type must be one of: ${Object.values(PRICE_TYPES).join(', ')}`,
     }),
