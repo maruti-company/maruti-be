@@ -2,7 +2,7 @@ const { jsPDF } = require('jspdf');
 const fs = require('fs');
 const path = require('path');
 const { uploadFile, deleteImage, getImageUrl } = require('./s3Service');
-const { COMPANY_INFO } = require('../utils/constants');
+const { COMPANY_INFO, PRICE_TYPES } = require('../utils/constants');
 const https = require('https');
 
 /**
@@ -589,6 +589,9 @@ const addPDFFooter = (doc, pageWidth, pageHeight, margin, quotation) => {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
 
+  // Dynamic GST term based on quotation price_type
+  const gstTerm = quotation.price_type === PRICE_TYPES.INCLUSIVE_TAX ? 'GST Inclusive' : 'GST Exclusive';
+
   const terms = [
     '1. The selected products may be available as per stock available at the',
     '   time of order placed by the customer.',
@@ -597,7 +600,7 @@ const addPDFFooter = (doc, pageWidth, pageHeight, margin, quotation) => {
     '4. No Warranty/Guarantee on decorative products.',
     '5. Guarantee/Warranty/Services available as per the Manufacturers',
     '   Policy.',
-    '6. Gst Inclusive/Exclusive',
+    `6. ${gstTerm}`,
     '7. Site Delivery & Labour charges extra which applies GST.',
     '8. Order once placed will not be cancelled, replaced or exchanged.',
     '9. Gst as applicable will be charged at the time of final billing.',
