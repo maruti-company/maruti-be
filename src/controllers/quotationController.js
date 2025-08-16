@@ -1,4 +1,13 @@
-const { Quotation, Item, Customer, Product, Location, Reference, sequelize } = require('../models');
+const {
+  Quotation,
+  Item,
+  Customer,
+  Product,
+  Location,
+  Reference,
+  User,
+  sequelize,
+} = require('../models');
 const { Op } = require('sequelize');
 const {
   HTTP_STATUS,
@@ -68,6 +77,7 @@ const createQuotation = async (req, res) => {
           last_shared_date,
           remarks,
           price_type,
+          created_by: req.user.id,
         },
         { transaction: t }
       );
@@ -147,6 +157,11 @@ const createQuotation = async (req, res) => {
           ],
         },
         {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
+        },
+        {
           model: Item,
           as: 'items',
           include: [
@@ -186,6 +201,11 @@ const createQuotation = async (req, res) => {
                 attributes: ['id', 'name', 'category', 'mobile_no'],
               },
             ],
+          },
+          {
+            model: User,
+            as: 'creator',
+            attributes: ['id', 'user_name', 'email'],
           },
           {
             model: Item,
@@ -279,6 +299,11 @@ const getQuotations = async (req, res) => {
           attributes: ['id', 'name', 'mobile_no'],
         },
         {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
+        },
+        {
           model: Item,
           as: 'items',
           include: [
@@ -344,6 +369,11 @@ const getQuotationById = async (req, res) => {
               attributes: ['id', 'name', 'category', 'mobile_no'],
             },
           ],
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
         },
         {
           model: Item,
@@ -444,6 +474,7 @@ const updateQuotation = async (req, res) => {
       if (last_shared_date) updateData.last_shared_date = last_shared_date;
       if (remarks !== undefined) updateData.remarks = remarks;
       if (price_type) updateData.price_type = price_type;
+      updateData.created_by = req.user.id; // Update created_by with current user
 
       if (Object.keys(updateData).length > 0) {
         await existingQuotation.update(updateData, { transaction: t });
@@ -552,6 +583,11 @@ const updateQuotation = async (req, res) => {
               attributes: ['id', 'name', 'category', 'mobile_no'],
             },
           ],
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
         },
         {
           model: Item,
@@ -761,6 +797,11 @@ const regeneratePDF = async (req, res) => {
               attributes: ['id', 'name', 'category', 'mobile_no'],
             },
           ],
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
         },
         {
           model: Item,

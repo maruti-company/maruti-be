@@ -590,7 +590,8 @@ const addPDFFooter = (doc, pageWidth, pageHeight, margin, quotation) => {
   doc.setFont('helvetica', 'normal');
 
   // Dynamic GST term based on quotation price_type
-  const gstTerm = quotation.price_type === PRICE_TYPES.INCLUSIVE_TAX ? 'GST Inclusive' : 'GST Exclusive';
+  const gstTerm =
+    quotation.price_type === PRICE_TYPES.INCLUSIVE_TAX ? 'GST Inclusive' : 'GST Exclusive';
 
   const terms = [
     '1. The selected products may be available as per stock available at the',
