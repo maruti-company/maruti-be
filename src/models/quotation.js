@@ -18,6 +18,13 @@ module.exports = sequelize => {
         onUpdate: 'CASCADE',
       });
 
+      Quotation.belongsTo(models.User, {
+        foreignKey: 'created_by',
+        as: 'creator',
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      });
+
       Quotation.hasMany(models.Item, {
         foreignKey: 'quotation_id',
         as: 'items',
@@ -93,6 +100,11 @@ module.exports = sequelize => {
         },
         comment: 'Price type for the quotation - Inclusive Tax or Exclusive Tax',
       },
+      created_by: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        comment: 'User who created the quotation',
+      },
     },
     {
       sequelize,
@@ -104,6 +116,9 @@ module.exports = sequelize => {
         },
         {
           fields: ['quotation_date'],
+        },
+        {
+          fields: ['created_by'],
         },
       ],
     }
