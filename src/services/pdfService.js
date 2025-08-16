@@ -2,12 +2,29 @@ const { jsPDF } = require('jspdf');
 const fs = require('fs');
 const path = require('path');
 const { uploadFile, deleteImage, getImageUrl } = require('./s3Service');
+const { COMPANY_INFO, PRICE_TYPES } = require('../utils/constants');
 const https = require('https');
 
 /**
  * PDF Generation Service for Quotations
  * Uses jsPDF for creating professional PDF documents
  */
+
+/**
+ * Load letterhead image from assets folder and convert to base64
+ * @returns {Promise<string>} - Base64 encoded letterhead image
+ */
+const loadLetterheadImage = async () => {
+  try {
+    const letterheadPath = path.join(__dirname, '../assets/maruti_letter_head.jfif');
+    const imageBuffer = fs.readFileSync(letterheadPath);
+    const base64 = imageBuffer.toString('base64');
+    return `data:image/jpeg;base64,${base64}`;
+  } catch (error) {
+    console.error('Error loading letterhead image:', error);
+    return null;
+  }
+};
 
 /**
  * Download image from S3 URL and convert to base64
@@ -216,17 +233,17 @@ const generateQuotationPDF = async (quotation, quotationId) => {
 
     // === HEADER SECTION ===
     await addPDFHeader(doc, quotation, pageWidth, margin, yPosition);
-    yPosition = 60; // Fixed position after header
+    yPosition = margin + 35 + 5; // margin + letterhead height + small spacing
 
     // === CUSTOMER INFO SECTION ===
     yPosition = addCustomerInfo(doc, quotation, margin, pageWidth, yPosition);
-    yPosition += 10;
+    yPosition += 5;
 
     // === ITEMS TABLE ===
     yPosition = await addItemsTable(doc, quotation, margin, pageWidth, pageHeight, yPosition);
 
-    // === FOOTER SECTION ===
-    addPDFFooter(doc, pageWidth, pageHeight, margin);
+    // === FOOTER SECTION (includes remarks if present) ===
+    addPDFFooter(doc, pageWidth, pageHeight, margin, quotation);
 
     // Return PDF as buffer
     return doc.output('arraybuffer');
@@ -240,44 +257,34 @@ const generateQuotationPDF = async (quotation, quotationId) => {
  * Add header section with company info and branding
  */
 const addPDFHeader = async (doc, quotation, pageWidth, margin, yPosition) => {
-  // Red header background
-  doc.setFillColor(220, 20, 20); // Red color
-  doc.rect(0, 0, pageWidth, 25, 'F');
+  // Load and add letterhead image
+  const letterheadBase64 = await loadLetterheadImage();
+  const contentWidth = pageWidth - margin * 2;
 
-  // QUOTATION title in white
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('QUOTATION', pageWidth / 2, 15, { align: 'center' });
-
-  // Company name and details
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('MARUTI LAMINATES PVT. LTD.', margin, 35);
-
-  // Company address and contact details
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  const companyDetails = [
-    'Shop No. 235 & 236, New Timber Market, Nr. Radhakrishna Main, Surat',
-    'Gala No. 3, Ground Floor, Shivani Bldg, Katargam-Udhna Ring Road,',
-    'Surat - 395004, Gujarat, India',
-    'Mobile: +91 98765 43210 | Email: marutilaminates@yahoo.com',
-  ];
-
-  let detailY = 40;
-  companyDetails.forEach(detail => {
-    doc.text(detail, margin, detailY);
-    detailY += 4;
-  });
-
-  // Add logo placeholder (right side)
-  doc.setDrawColor(200, 200, 200);
-  doc.rect(pageWidth - 70, 30, 60, 25);
-  doc.setFontSize(10);
-  doc.setTextColor(150, 150, 150);
-  doc.text('LOGO', pageWidth - 40, 45, { align: 'center' });
+  if (letterheadBase64) {
+    try {
+      // Add letterhead image with proper content width alignment and reduced height
+      const letterheadHeight = 35; // Reduced height to match content better
+      doc.addImage(letterheadBase64, 'JPEG', margin, yPosition, contentWidth, letterheadHeight);
+    } catch (error) {
+      console.error('Error adding letterhead image to PDF:', error);
+      // Fallback to original red header if image fails
+      doc.setFillColor(220, 20, 20);
+      doc.rect(margin, yPosition, contentWidth, 25, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('QUOTATION', pageWidth / 2, yPosition + 15, { align: 'center' });
+    }
+  } else {
+    // Fallback to original red header if letterhead image is not available
+    doc.setFillColor(220, 20, 20);
+    doc.rect(margin, yPosition, contentWidth, 25, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('QUOTATION', pageWidth / 2, yPosition + 15, { align: 'center' });
+  }
 };
 
 /**
@@ -297,19 +304,36 @@ const addCustomerInfo = (doc, quotation, margin, pageWidth, yPosition) => {
   doc.text(quotation.customer?.name || 'N/A', margin + 15, yPosition + 5);
   doc.text('Address:', margin, yPosition + 10);
   doc.text(quotation.customer?.address || 'N/A', margin + 20, yPosition + 10);
-  doc.text('Mobile:', margin, yPosition + 20);
-  doc.text(quotation.customer?.mobile_no || 'N/A', margin + 20, yPosition + 20);
+  doc.text('Mobile:', margin, yPosition + 15);
+  doc.text(quotation.customer?.mobile_no || 'N/A', margin + 20, yPosition + 15);
+  doc.text('GST Number:', margin, yPosition + 20);
+  doc.text(quotation.customer?.gst_number || 'N/A', margin + 25, yPosition + 20);
 
-  // Right side - Quote details
-  const rightX = pageWidth - 80;
-  doc.text('Quote No.:', rightX, yPosition);
-  doc.text(quotation.id.substring(0, 8), rightX + 25, yPosition);
-  doc.text('Date:', rightX, yPosition + 5);
-  doc.text(
-    new Date(quotation.quotation_date).toLocaleDateString('en-IN'),
-    rightX + 15,
-    yPosition + 5
-  );
+  // Right side - Quote details (restructured for better layout)
+  const labelX = pageWidth - 100; // Position for labels (100mm from right edge)
+  const valueX = pageWidth - margin - 25; // Position for values (25mm from right edge)
+
+  // Quote ID section with separate positioning for labels and values
+  doc.setFont('helvetica', 'normal');
+  doc.text('Quote Id:', labelX, yPosition);
+  doc.text(quotation.id, valueX, yPosition + 4, { align: 'right' });
+
+  doc.text('Date:', labelX, yPosition + 9);
+  doc.text(new Date(quotation.quotation_date).toLocaleDateString('en-IN'), valueX, yPosition + 9, {
+    align: 'right',
+  });
+
+  // Reference details with proper spacing
+  const referenceName = quotation.customer?.reference?.name || 'N/A';
+  const referenceMobile = quotation.customer?.reference?.mobile_no || 'N/A';
+
+  // Reference Name
+  doc.text('Reference Name:', labelX, yPosition + 14);
+  doc.text(referenceName, valueX, yPosition + 14, { align: 'right' });
+
+  // Reference Mobile
+  doc.text('Reference Mobile:', labelX, yPosition + 19);
+  doc.text(referenceMobile, valueX, yPosition + 19, { align: 'right' });
 
   return yPosition + 30;
 };
@@ -318,19 +342,8 @@ const addCustomerInfo = (doc, quotation, margin, pageWidth, yPosition) => {
  * Get column alignment based on column index
  */
 const getColumnAlignment = colIndex => {
-  // Column alignments: 0=Sr, 1=Description, 2=Product, 3=Location, 4=Rate, 5=Unit, 6=Qty, 7=Less Disc, 8=Amount, 9=Image
-  const alignments = [
-    'center',
-    'left',
-    'left',
-    'left',
-    'right',
-    'center',
-    'center',
-    'right',
-    'right',
-    'center',
-  ];
+  // Column alignments: 0=Sr, 1=Product, 2=Location, 3=Rate, 4=Unit, 5=Qty, 6=Discount, 7=Image
+  const alignments = ['center', 'left', 'left', 'right', 'center', 'center', 'center', 'center'];
   return alignments[colIndex] || 'left';
 };
 
@@ -359,20 +372,9 @@ const addItemsTable = async (doc, quotation, margin, pageWidth, pageHeight, star
   const headerHeight = 15;
 
   // Table headers
-  const headers = [
-    'Sr',
-    'Description',
-    'Product',
-    'Location',
-    'Rate',
-    'Unit',
-    'Qty',
-    'Less Disc',
-    'Amount',
-    'Image',
-  ];
+  const headers = ['Sr', 'Product', 'Location', 'Rate', 'Unit', 'Qty', 'Discount', 'Image'];
   // Adjusted column widths to fit within page (total should be around 190mm for A4)
-  const colWidths = [12, 28, 22, 20, 18, 12, 12, 18, 20, 28]; // Total: 190mm
+  const colWidths = [12, 50, 26, 18, 16, 12, 18, 38]; // Total: 190mm
 
   // Draw header background
   doc.setFillColor(240, 240, 240);
@@ -428,27 +430,33 @@ const addItemsTable = async (doc, quotation, margin, pageWidth, pageHeight, star
     const rate = parseFloat(item.rate) || 0;
     const quantity = parseInt(item.quantity) || 1;
     const discount = parseFloat(item.discount) || 0;
-    let discountAmount = 0;
 
-    if (item.discount_type === 'PERCENTAGE') {
-      discountAmount = (rate * quantity * discount) / 100;
-    } else if (item.discount_type === 'PER_PIECE') {
-      discountAmount = discount * quantity;
+    // Format discount display based on type
+    let discountDisplay = '';
+    if (discount > 0) {
+      if (item.discount_type === 'PERCENTAGE') {
+        discountDisplay = `${discount}%`;
+      } else if (item.discount_type === 'PER_PIECE') {
+        discountDisplay = `${discount}/piece`;
+      } else {
+        discountDisplay = discount.toString();
+      }
     }
 
-    const amount = rate * quantity - discountAmount;
+    // Merge product name and description
+    const productName = item.product?.name || 'N/A';
+    const description = item.description && item.description.trim() !== '' ? item.description : '';
+    const productWithDescription = description ? `${productName} - ${description}` : productName;
 
     // Row data
     const rowData = [
       (i + 1).toString(),
-      item.description || item.product?.description || 'N/A',
-      item.product?.name || 'N/A',
+      productWithDescription,
       item.location?.name || 'N/A',
       rate.toFixed(2),
       item.unit || 'PCS',
       quantity.toString(),
-      discountAmount.toFixed(2),
-      amount.toFixed(2),
+      discountDisplay,
       '', // Image column - will be handled separately
     ];
 
@@ -506,9 +514,9 @@ const addItemsTable = async (doc, quotation, margin, pageWidth, pageHeight, star
         const { base64: base64Image } = await downloadImageAsBase64(imagePath);
 
         // Calculate image dimensions to fit in cell (maintain aspect ratio)
-        const maxImageWidth = colWidths[9] - 4;
+        const maxImageWidth = colWidths[7] - 4;
         const maxImageHeight = rowHeight - 4;
-        const imageX = currentX - colWidths[9] + 2;
+        const imageX = currentX - colWidths[7] + 2;
         const imageY = yPosition + 2;
 
         // Maintain aspect ratio while fitting in cell
@@ -524,7 +532,7 @@ const addItemsTable = async (doc, quotation, margin, pageWidth, pageHeight, star
         console.error('Error adding image to table:', error);
         // Add placeholder text
         doc.setFontSize(6);
-        doc.text('Image', currentX - colWidths[9] + colWidths[9] / 2, yPosition + 10, {
+        doc.text('Image', currentX - colWidths[7] + colWidths[7] / 2, yPosition + 10, {
           align: 'center',
         });
         doc.setFontSize(8);
@@ -538,10 +546,40 @@ const addItemsTable = async (doc, quotation, margin, pageWidth, pageHeight, star
 };
 
 /**
- * Add footer with terms and conditions
+ * Add footer with remarks (if present) and terms and conditions
  */
-const addPDFFooter = (doc, pageWidth, pageHeight, margin) => {
-  const footerY = pageHeight - 60;
+const addPDFFooter = (doc, pageWidth, pageHeight, margin, quotation) => {
+  let footerY = pageHeight - 60;
+
+  // Add remarks section if remarks exist (just above terms & conditions)
+  if (quotation && quotation.remarks && quotation.remarks.trim() !== '') {
+    // Calculate space needed for remarks
+    const maxWidth = pageWidth - margin * 2;
+    const remarksLines = doc.splitTextToSize(quotation.remarks, maxWidth);
+    const remarksHeight = remarksLines.length * 4 + 10; // 4 for line height + 10 for spacing
+
+    // Adjust footer position to accommodate remarks
+    footerY = pageHeight - 60 - remarksHeight;
+
+    // Add Remarks section
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Remarks:', margin, footerY);
+
+    // Remarks content
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+
+    let currentY = footerY + 5;
+    remarksLines.forEach(line => {
+      doc.text(line, margin, currentY);
+      currentY += 4;
+    });
+
+    // Update footerY for terms & conditions
+    footerY = currentY + 5;
+  }
 
   // Terms & Conditions section
   doc.setFontSize(10);
@@ -551,14 +589,23 @@ const addPDFFooter = (doc, pageWidth, pageHeight, margin) => {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
 
+  // Dynamic GST term based on quotation price_type
+  const gstTerm = quotation.price_type === PRICE_TYPES.INCLUSIVE_TAX ? 'GST Inclusive' : 'GST Exclusive';
+
   const terms = [
-    '1. Quotation Valid for 7 Days only.',
-    '2. 100% Advance Payment at the time of order.',
-    '3. No Guaranty / Warranty on decorative products.',
-    '4. Prices are exclusive of GST, GST as applicable will be charged at the time of Bill',
-    '5. Material once delivered will not be taken back.',
-    '6. Order once placed will not be cancelled, replaced or exchanged.',
-    'SUBJECT TO AHMEDABAD JURISDICTION',
+    '1. The selected products may be available as per stock available at the',
+    '   time of order placed by the customer.',
+    '2. This Quotation is Valid for 10 Days.',
+    '3. 100% Advance payment at the time of order.',
+    '4. No Warranty/Guarantee on decorative products.',
+    '5. Guarantee/Warranty/Services available as per the Manufacturers',
+    '   Policy.',
+    `6. ${gstTerm}`,
+    '7. Site Delivery & Labour charges extra which applies GST.',
+    '8. Order once placed will not be cancelled, replaced or exchanged.',
+    '9. Gst as applicable will be charged at the time of final billing.',
+    '10. Transportation at Buyers risk.',
+    '11. Subject to Ahmedabad Jurisdiction.',
   ];
 
   let termY = footerY + 5;
@@ -567,24 +614,15 @@ const addPDFFooter = (doc, pageWidth, pageHeight, margin) => {
     termY += 4;
   });
 
-  // Seal & Signature section
-  doc.setFillColor(220, 20, 20);
-  doc.rect(pageWidth - 80, footerY + 25, 70, 15, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Seal & Signature', pageWidth - 45, footerY + 35, { align: 'center' });
+  // Add company footer on the last page (bottom right)
+  const currentYear = new Date().getFullYear();
+  const companyFooterText = `Maruti Laminates | ${currentYear} | GST: ${COMPANY_INFO.GST_NUMBER}`;
 
-  // Thank you message
-  doc.setTextColor(0, 0, 0);
+  // Position at bottom right of the page
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'italic');
-  doc.text(
-    'Thanks for business with us !!! Please visit us again !!!',
-    pageWidth / 2,
-    pageHeight - 10,
-    { align: 'center' }
-  );
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100); // Gray color
+  doc.text(companyFooterText, pageWidth - margin, pageHeight - 5, { align: 'right' });
 };
 
 /**
