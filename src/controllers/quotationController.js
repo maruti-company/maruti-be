@@ -54,7 +54,8 @@ const createQuotation = async (req, res) => {
       attributes: ['id', 'unit'],
     });
 
-    if (products.length !== productIds.length) {
+    const missingProducts = productIds.filter(id => !products.some(product => product.id === id));
+    if (missingProducts.length > 0) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
         message: 'One or more products not found',
@@ -489,7 +490,8 @@ const updateQuotation = async (req, res) => {
           attributes: ['id', 'unit'],
         });
 
-        if (products.length !== productIds.length) {
+        const missingProducts = productIds.filter(id => !products.some(product => product.id === id));
+        if (missingProducts.length > 0) {
           throw new Error('One or more products not found');
         }
 
