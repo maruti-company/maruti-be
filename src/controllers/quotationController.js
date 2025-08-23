@@ -263,7 +263,7 @@ const getQuotations = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || PAGINATION.DEFAULT_PAGE;
     const limit = parseInt(req.query.limit) || PAGINATION.DEFAULT_LIMIT;
-    const { customer_id, start_date, end_date } = req.query;
+    const { customer_id, reference_id, start_date, end_date } = req.query;
 
     // Ensure values are valid numbers
     const validPage = Math.max(1, page);
@@ -285,6 +285,39 @@ const getQuotations = async (req, res) => {
       }
     }
 
+    // Build include clause with conditional reference filtering
+    const includeClause = [
+      {
+        model: Customer,
+        as: 'customer',
+        attributes: ['id', 'name', 'mobile_no'],
+        ...(reference_id && {
+          where: { reference_id: reference_id },
+        }),
+      },
+      {
+        model: User,
+        as: 'creator',
+        attributes: ['id', 'user_name', 'email'],
+      },
+      {
+        model: Item,
+        as: 'items',
+        include: [
+          {
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name', 'description', 'unit'],
+          },
+          {
+            model: Location,
+            as: 'location',
+            attributes: ['id', 'name'],
+          },
+        ],
+      },
+    ];
+
     const { count, rows: quotations } = await Quotation.findAndCountAll({
       where: whereClause,
       limit: validLimit,
@@ -293,34 +326,7 @@ const getQuotations = async (req, res) => {
       // Avoid inflated counts caused by JOINs from hasMany includes
       distinct: true,
       col: 'id',
-      include: [
-        {
-          model: Customer,
-          as: 'customer',
-          attributes: ['id', 'name', 'mobile_no'],
-        },
-        {
-          model: User,
-          as: 'creator',
-          attributes: ['id', 'user_name', 'email'],
-        },
-        {
-          model: Item,
-          as: 'items',
-          include: [
-            {
-              model: Product,
-              as: 'product',
-              attributes: ['id', 'name', 'description', 'unit'],
-            },
-            {
-              model: Location,
-              as: 'location',
-              attributes: ['id', 'name'],
-            },
-          ],
-        },
-      ],
+      include: includeClause,
     });
 
     const totalPages = Math.ceil(count / validLimit);
@@ -490,7 +496,9 @@ const updateQuotation = async (req, res) => {
           attributes: ['id', 'unit'],
         });
 
-        const missingProducts = productIds.filter(id => !products.some(product => product.id === id));
+        const missingProducts = productIds.filter(
+          id => !products.some(product => product.id === id)
+        );
         if (missingProducts.length > 0) {
           throw new Error('One or more products not found');
         }

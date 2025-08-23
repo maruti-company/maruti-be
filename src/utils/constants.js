@@ -16,6 +16,7 @@ const API_ROUTES = {
     CREATE: '/users',
     UPDATE: '/users/:id',
     DELETE: '/users/:id',
+    CHANGE_PASSWORD: '/users/change-password',
   },
   HEALTH: {
     BASE: '/health',
@@ -44,6 +45,7 @@ const ERROR_MESSAGES = {
   ADMIN_ACCESS_REQUIRED: 'Admin access required',
   TOKEN_REQUIRED: 'Access token is required',
   INVALID_TOKEN: 'Invalid or expired token',
+  INCORRECT_CURRENT_PASSWORD: 'Current password is incorrect',
 
   // User Management
   USER_NOT_FOUND: 'User not found',
@@ -68,6 +70,7 @@ const ERROR_MESSAGES = {
 const SUCCESS_MESSAGES = {
   // Authentication
   LOGIN_SUCCESSFUL: 'Login successful',
+  PASSWORD_CHANGED: 'Password changed successfully',
 
   // User Management
   USER_CREATED: 'User created successfully',

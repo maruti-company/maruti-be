@@ -105,9 +105,30 @@ const userIdValidator = Joi.object({
   }),
 });
 
+const changePasswordValidator = Joi.object({
+  currentPassword: Joi.string().required().messages({
+    'any.required': 'Current password is required',
+    'string.empty': 'Current password cannot be empty',
+  }),
+  newPassword: Joi.string()
+    .min(PASSWORD_CONFIG.MIN_LENGTH)
+    .required()
+    .messages({
+      'string.min': `Password must be at least ${PASSWORD_CONFIG.MIN_LENGTH} characters long`,
+      'any.required': 'New password is required',
+      'string.empty': 'New password cannot be empty',
+    }),
+  confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required().messages({
+    'any.only': 'New password and confirm password must match',
+    'any.required': 'Confirm password is required',
+    'string.empty': 'Confirm password cannot be empty',
+  }),
+});
+
 module.exports = {
   createUserValidator,
   updateUserValidator,
   getUsersValidator,
   userIdValidator,
+  changePasswordValidator,
 };

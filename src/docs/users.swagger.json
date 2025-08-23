@@ -118,10 +118,10 @@
                 "$ref": "#/components/schemas/CreateUserRequest"
               },
               "example": {
-                "email": "employee@maruti.com",
-                "user_name": "John Doe",
-                "password": "employee123",
-                "role": 2
+                "email": "admin@maruti.com",
+                "user_name": "Admin User",
+                "password": "admin123",
+                "role": 1
               }
             }
           }
@@ -138,17 +138,17 @@
             }
           },
           "400": {
-            "description": "Validation error",
+            "description": "Bad request - Validation error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationError"
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "Unauthorized - Token required",
             "content": {
               "application/json": {
                 "schema": {
@@ -168,7 +168,96 @@
             }
           },
           "409": {
-            "description": "User already exists",
+            "description": "Conflict - User already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/change-password": {
+      "post": {
+        "summary": "Change password",
+        "description": "Change the current user's password (Admin only)",
+        "tags": ["Users"],
+        "servers": [
+          {
+            "url": "http://localhost:3000/api/v1",
+            "description": "Development server (API endpoints)"
+          },
+          {
+            "url": "https://api.maruti.com/api/v1",
+            "description": "Production server (API endpoints)"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              },
+              "example": {
+                "currentPassword": "oldpassword123",
+                "newPassword": "newpassword123",
+                "confirmPassword": "newpassword123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Validation error or incorrect current password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Token required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - User not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -524,6 +613,28 @@
             "enum": [1, 2],
             "example": 1,
             "description": "User role (1 = Admin, 2 = Employee)"
+          }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "required": ["currentPassword", "newPassword", "confirmPassword"],
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "oldpassword123",
+            "description": "Current password of the user"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 6,
+            "example": "newpassword123",
+            "description": "New password (minimum 6 characters)"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "example": "newpassword123",
+            "description": "Confirm new password (must match newPassword)"
           }
         }
       },

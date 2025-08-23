@@ -5,6 +5,7 @@ const {
   getUserById,
   updateUser,
   deleteUser,
+  changePassword,
 } = require('../controllers/userController');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 const { validateBody, validateParams, validateQuery } = require('../middleware/validation');
@@ -13,6 +14,7 @@ const {
   updateUserValidator,
   getUsersValidator,
   userIdValidator,
+  changePasswordValidator,
 } = require('../validators/userValidators');
 
 const router = express.Router();
@@ -37,5 +39,8 @@ router.put('/:id', validateParams(userIdValidator), validateBody(updateUserValid
 
 // DELETE /users/:id - Delete user
 router.delete('/:id', validateParams(userIdValidator), deleteUser);
+
+// POST /users/change-password - Change password (Admin only)
+router.post('/change-password', validateBody(changePasswordValidator), changePassword);
 
 module.exports = router;
