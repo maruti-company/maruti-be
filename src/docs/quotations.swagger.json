@@ -57,7 +57,7 @@
     "/quotations": {
       "get": {
         "summary": "Get all quotations",
-        "description": "Retrieve a paginated list of quotations with optional filtering by customer, start date, and end date",
+        "description": "Retrieve a paginated list of quotations with optional filtering by customer, reference, start date, and end date",
         "tags": ["Quotations"],
         "security": [{ "bearerAuth": [] }],
         "parameters": [
@@ -90,6 +90,17 @@
             "name": "customer_id",
             "in": "query",
             "description": "Filter by customer ID",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "123e4567-e89b-12d3-a456-426614174000"
+            }
+          },
+          {
+            "name": "reference_id",
+            "in": "query",
+            "description": "Filter by reference ID (filters customers by their reference)",
             "required": false,
             "schema": {
               "type": "string",

@@ -296,46 +296,77 @@ const addCustomerInfo = (doc, quotation, margin, pageWidth, yPosition) => {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(0, 0, 0);
 
+  let currentY = yPosition;
+
   // Left side - To section
   doc.setFont('helvetica', 'bold');
-  doc.text('To:', margin, yPosition);
+  doc.text('To:', margin, currentY);
+  currentY += 5;
+
+  // Name
   doc.setFont('helvetica', 'normal');
-  doc.text('Name:', margin, yPosition + 5);
-  doc.text(quotation.customer?.name || 'N/A', margin + 15, yPosition + 5);
-  doc.text('Address:', margin, yPosition + 10);
-  doc.text(quotation.customer?.address || 'N/A', margin + 20, yPosition + 10);
-  doc.text('Mobile:', margin, yPosition + 15);
-  doc.text(quotation.customer?.mobile_no || 'N/A', margin + 20, yPosition + 15);
-  doc.text('GST Number:', margin, yPosition + 20);
-  doc.text(quotation.customer?.gst_number || 'N/A', margin + 25, yPosition + 20);
+  doc.text('Name:', margin, currentY);
+  doc.text(quotation.customer?.name || 'N/A', margin + 15, currentY);
+  currentY += 5;
+
+  // Address - handle multi-line addresses
+  doc.text('Address:', margin, currentY);
+  const address = quotation.customer?.address || 'N/A';
+  const maxAddressWidth = pageWidth / 2 - margin - 30; // Leave space for right side content
+  const addressLines = doc.splitTextToSize(address, maxAddressWidth);
+
+  let addressY = currentY;
+  addressLines.forEach((line, index) => {
+    doc.text(line, margin + 20, addressY);
+    if (index < addressLines.length - 1) {
+      addressY += 4; // Line spacing for multi-line addresses
+    }
+  });
+  currentY = addressY + 5;
+
+  // Mobile - positioned after address regardless of address length
+  doc.text('Mobile:', margin, currentY);
+  doc.text(quotation.customer?.mobile_no || 'N/A', margin + 20, currentY);
+  currentY += 5;
+
+  // GST Number - positioned after mobile
+  doc.text('GST Number:', margin, currentY);
+  doc.text(quotation.customer?.gst_number || 'N/A', margin + 25, currentY);
+  currentY += 5;
 
   // Right side - Quote details (restructured for better layout)
   const labelX = pageWidth - 100; // Position for labels (100mm from right edge)
   const valueX = pageWidth - margin - 25; // Position for values (25mm from right edge)
+  let rightY = yPosition;
 
   // Quote ID section with separate positioning for labels and values
   doc.setFont('helvetica', 'normal');
-  doc.text('Quote Id:', labelX, yPosition);
-  doc.text(quotation.id, valueX, yPosition + 4, { align: 'right' });
+  doc.text('Quote Id:', labelX, rightY);
+  doc.text(quotation.id, valueX, rightY + 4, { align: 'right' });
+  rightY += 9;
 
-  doc.text('Date:', labelX, yPosition + 9);
-  doc.text(new Date(quotation.quotation_date).toLocaleDateString('en-IN'), valueX, yPosition + 9, {
+  doc.text('Date:', labelX, rightY);
+  doc.text(new Date(quotation.quotation_date).toLocaleDateString('en-IN'), valueX, rightY, {
     align: 'right',
   });
+  rightY += 5;
 
   // Reference details with proper spacing
   const referenceName = quotation.customer?.reference?.name || 'N/A';
   const referenceMobile = quotation.customer?.reference?.mobile_no || 'N/A';
 
   // Reference Name
-  doc.text('Reference Name:', labelX, yPosition + 14);
-  doc.text(referenceName, valueX, yPosition + 14, { align: 'right' });
+  doc.text('Reference Name:', labelX, rightY);
+  doc.text(referenceName, valueX, rightY, { align: 'right' });
+  rightY += 5;
 
   // Reference Mobile
-  doc.text('Reference Mobile:', labelX, yPosition + 19);
-  doc.text(referenceMobile, valueX, yPosition + 19, { align: 'right' });
+  doc.text('Reference Mobile:', labelX, rightY);
+  doc.text(referenceMobile, valueX, rightY, { align: 'right' });
+  rightY += 5;
 
-  return yPosition + 30;
+  // Return the maximum Y position to ensure proper spacing for next section
+  return Math.max(currentY, rightY) + 5;
 };
 
 /**
