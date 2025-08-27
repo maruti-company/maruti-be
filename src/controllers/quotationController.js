@@ -1,4 +1,13 @@
-const { Quotation, Item, Customer, Product, Location, Reference, sequelize } = require('../models');
+const {
+  Quotation,
+  Item,
+  Customer,
+  Product,
+  Location,
+  Reference,
+  User,
+  sequelize,
+} = require('../models');
 const { Op } = require('sequelize');
 const {
   HTTP_STATUS,
@@ -45,7 +54,8 @@ const createQuotation = async (req, res) => {
       attributes: ['id', 'unit'],
     });
 
-    if (products.length !== productIds.length) {
+    const missingProducts = productIds.filter(id => !products.some(product => product.id === id));
+    if (missingProducts.length > 0) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
         message: 'One or more products not found',
@@ -68,6 +78,7 @@ const createQuotation = async (req, res) => {
           last_shared_date,
           remarks,
           price_type,
+          created_by: req.user.id,
         },
         { transaction: t }
       );
@@ -147,6 +158,11 @@ const createQuotation = async (req, res) => {
           ],
         },
         {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
+        },
+        {
           model: Item,
           as: 'items',
           include: [
@@ -186,6 +202,11 @@ const createQuotation = async (req, res) => {
                 attributes: ['id', 'name', 'category', 'mobile_no'],
               },
             ],
+          },
+          {
+            model: User,
+            as: 'creator',
+            attributes: ['id', 'user_name', 'email'],
           },
           {
             model: Item,
@@ -242,7 +263,7 @@ const getQuotations = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || PAGINATION.DEFAULT_PAGE;
     const limit = parseInt(req.query.limit) || PAGINATION.DEFAULT_LIMIT;
-    const { customer_id, start_date, end_date } = req.query;
+    const { customer_id, reference_id, start_date, end_date } = req.query;
 
     // Ensure values are valid numbers
     const validPage = Math.max(1, page);
@@ -264,6 +285,39 @@ const getQuotations = async (req, res) => {
       }
     }
 
+    // Build include clause with conditional reference filtering
+    const includeClause = [
+      {
+        model: Customer,
+        as: 'customer',
+        attributes: ['id', 'name', 'mobile_no'],
+        ...(reference_id && {
+          where: { reference_id: reference_id },
+        }),
+      },
+      {
+        model: User,
+        as: 'creator',
+        attributes: ['id', 'user_name', 'email'],
+      },
+      {
+        model: Item,
+        as: 'items',
+        include: [
+          {
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name', 'description', 'unit'],
+          },
+          {
+            model: Location,
+            as: 'location',
+            attributes: ['id', 'name'],
+          },
+        ],
+      },
+    ];
+
     const { count, rows: quotations } = await Quotation.findAndCountAll({
       where: whereClause,
       limit: validLimit,
@@ -272,29 +326,7 @@ const getQuotations = async (req, res) => {
       // Avoid inflated counts caused by JOINs from hasMany includes
       distinct: true,
       col: 'id',
-      include: [
-        {
-          model: Customer,
-          as: 'customer',
-          attributes: ['id', 'name', 'mobile_no'],
-        },
-        {
-          model: Item,
-          as: 'items',
-          include: [
-            {
-              model: Product,
-              as: 'product',
-              attributes: ['id', 'name', 'description', 'unit'],
-            },
-            {
-              model: Location,
-              as: 'location',
-              attributes: ['id', 'name'],
-            },
-          ],
-        },
-      ],
+      include: includeClause,
     });
 
     const totalPages = Math.ceil(count / validLimit);
@@ -344,6 +376,11 @@ const getQuotationById = async (req, res) => {
               attributes: ['id', 'name', 'category', 'mobile_no'],
             },
           ],
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
         },
         {
           model: Item,
@@ -444,6 +481,7 @@ const updateQuotation = async (req, res) => {
       if (last_shared_date) updateData.last_shared_date = last_shared_date;
       if (remarks !== undefined) updateData.remarks = remarks;
       if (price_type) updateData.price_type = price_type;
+      updateData.created_by = req.user.id; // Update created_by with current user
 
       if (Object.keys(updateData).length > 0) {
         await existingQuotation.update(updateData, { transaction: t });
@@ -458,7 +496,10 @@ const updateQuotation = async (req, res) => {
           attributes: ['id', 'unit'],
         });
 
-        if (products.length !== productIds.length) {
+        const missingProducts = productIds.filter(
+          id => !products.some(product => product.id === id)
+        );
+        if (missingProducts.length > 0) {
           throw new Error('One or more products not found');
         }
 
@@ -552,6 +593,11 @@ const updateQuotation = async (req, res) => {
               attributes: ['id', 'name', 'category', 'mobile_no'],
             },
           ],
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
         },
         {
           model: Item,
@@ -761,6 +807,11 @@ const regeneratePDF = async (req, res) => {
               attributes: ['id', 'name', 'category', 'mobile_no'],
             },
           ],
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'user_name', 'email'],
         },
         {
           model: Item,

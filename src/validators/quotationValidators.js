@@ -201,6 +201,9 @@ const getQuotationsValidator = Joi.object({
   customer_id: Joi.string().uuid().optional().messages({
     'string.guid': 'Customer ID must be a valid UUID',
   }),
+  reference_id: Joi.string().uuid().optional().messages({
+    'string.guid': 'Reference ID must be a valid UUID',
+  }),
   start_date: Joi.date().optional().messages({
     'date.base': 'Start date must be a valid date',
   }),
