@@ -1,7 +1,7 @@
 {
     "apps": {
         "name": "maruti-production-api",
-        "script": "src/index.js",
+        "script": "src/server.js",
         "instances": "max",
         "watch": false,
         "log_date_format": "DD-MM HH:mm:ss.SSS",
