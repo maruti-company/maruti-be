@@ -31,7 +31,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: IMAGE_CONFIG.MAX_FILE_SIZE_BYTES,
-    files: IMAGE_CONFIG.MAX_IMAGES_PER_ITEM * 10, // Allow multiple items with multiple images
+    files: IMAGE_CONFIG.MAX_FILES_PER_QUOTATION, // Allow up to 20 items with multiple images each (5 * 20 = 100 files max)
   },
   fileFilter: (req, file, cb) => {
     if (IMAGE_CONFIG.ALLOWED_MIME_TYPES.includes(file.mimetype)) {
