@@ -112,6 +112,10 @@
         {
           "name": "Quotations",
           "description": "Quotation management - customer quotations with items and images"
+        },
+        {
+          "name": "Seed",
+          "description": "Test data seeding and cleanup operations (Admin only)"
         }
   ]
 } 
