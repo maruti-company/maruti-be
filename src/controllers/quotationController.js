@@ -399,6 +399,7 @@ const getQuotationById = async (req, res) => {
           ],
         },
       ],
+      order: [[{ model: Item, as: 'items' }, 'createdAt', 'ASC']],
     });
 
     if (!quotation) {
