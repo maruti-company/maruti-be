@@ -147,6 +147,7 @@ const IMAGE_CONFIG = {
   MAX_FILE_SIZE_MB: 5,
   MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024, // 5MB in bytes
   ALLOWED_MIME_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  MAX_FILES_PER_QUOTATION: 50,
 };
 
 const FILE_CONFIG = {
