@@ -1,4 +1,4 @@
-const { Product } = require('../models');
+const { Product, Item } = require('../models');
 const {
   HTTP_STATUS,
   ERROR_MESSAGES,
@@ -190,19 +190,36 @@ const updateProduct = async (req, res) => {
 };
 
 /**
- * Delete product (Admin only)
+ * Delete product (Admin only - check for dependent items)
  */
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find product
+    // Find product and count associated items
     const product = await Product.findByPk(id);
 
     if (!product) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
         message: 'Product not found',
+      });
+    }
+
+    // Check if product is used in any items
+    const itemCount = await Item.count({
+      where: {
+        product_id: id,
+      },
+    });
+
+    if (itemCount > 0) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: 'Cannot delete product. It is used in quotation items',
+        data: {
+          itemCount: itemCount,
+        },
       });
     }
 

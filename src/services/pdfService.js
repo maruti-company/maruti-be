@@ -243,7 +243,7 @@ const generateQuotationPDF = async (quotation, quotationId) => {
     yPosition = await addItemsTable(doc, quotation, margin, pageWidth, pageHeight, yPosition);
 
     // === FOOTER SECTION (includes remarks if present) ===
-    addPDFFooter(doc, pageWidth, pageHeight, margin, quotation);
+    addPDFFooter(doc, pageWidth, pageHeight, margin, quotation, yPosition);
 
     // Return PDF as buffer
     return doc.output('arraybuffer');
@@ -303,11 +303,21 @@ const addCustomerInfo = (doc, quotation, margin, pageWidth, yPosition) => {
   doc.text('To:', margin, currentY);
   currentY += 5;
 
-  // Name
+  // Name - with text wrapping for long names
   doc.setFont('helvetica', 'normal');
   doc.text('Name:', margin, currentY);
-  doc.text(quotation.customer?.name || 'N/A', margin + 15, currentY);
-  currentY += 5;
+  const customerName = quotation.customer?.name || 'N/A';
+  const maxNameWidth = pageWidth / 2 - margin - 30; // Leave space for right side content
+  const nameLines = doc.splitTextToSize(customerName, maxNameWidth);
+
+  let nameY = currentY;
+  nameLines.forEach((line, index) => {
+    doc.text(line, margin + 15, nameY);
+    if (index < nameLines.length - 1) {
+      nameY += 4; // Line spacing for multi-line names
+    }
+  });
+  currentY = nameY + 5;
 
   // Address - handle multi-line addresses
   doc.text('Address:', margin, currentY);
@@ -352,21 +362,42 @@ const addCustomerInfo = (doc, quotation, margin, pageWidth, yPosition) => {
   rightY += 5;
 
   // Reference details with proper spacing
-  const referenceName = quotation.customer?.reference?.name || 'N/A';
-  const referenceMobile = quotation.customer?.reference?.mobile_no || 'N/A';
+  const referenceName = quotation.customer?.reference?.name || '';
+  const referenceMobile = quotation.customer?.reference?.mobile_no || '';
 
-  // Reference Name
+  // Reference Name - with proper text wrapping and positioning
   doc.text('Reference Name:', labelX, rightY);
-  doc.text(referenceName, valueX, rightY, { align: 'right' });
-  rightY += 5;
+
+  // Calculate available width for reference name (from label end to right margin)
+  const labelWidth = doc.getTextWidth('Reference Name:');
+  const availableWidth = valueX - (labelX + labelWidth + 5); // 5mm gap between label and value
+
+  // Split text to fit available width
+  const refNameLines = doc.splitTextToSize(referenceName, availableWidth);
+
+  // Position reference name after the label
+  let refNameY = rightY;
+  refNameLines.forEach((line, index) => {
+    doc.text(line, labelX + labelWidth + 5, refNameY);
+    if (index < refNameLines.length - 1) {
+      refNameY += 4; // Line spacing for multi-line reference names
+    }
+  });
+
+  // Update Y position based on number of lines
+  rightY = refNameY + 5;
 
   // Reference Mobile
   doc.text('Reference Mobile:', labelX, rightY);
+
   doc.text(referenceMobile, valueX, rightY, { align: 'right' });
   rightY += 5;
 
   // Return the maximum Y position to ensure proper spacing for next section
-  return Math.max(currentY, rightY) + 5;
+  // Add extra spacing if we have multi-line content to prevent overlap
+  const maxY = Math.max(currentY, rightY);
+  const extraSpacing = nameLines.length > 1 || refNameLines.length > 1 ? 10 : 5;
+  return maxY + extraSpacing;
 };
 
 /**
@@ -579,18 +610,21 @@ const addItemsTable = async (doc, quotation, margin, pageWidth, pageHeight, star
 /**
  * Add footer with remarks (if present) and terms and conditions
  */
-const addPDFFooter = (doc, pageWidth, pageHeight, margin, quotation) => {
-  let footerY = pageHeight - 60;
+const addPDFFooter = (doc, pageWidth, pageHeight, margin, quotation, startY) => {
+  let footerY = startY + 10; // Start 10mm after the table
+
+  // Check if we need a new page for the footer content
+  const estimatedFooterHeight = 80; // Estimate space needed for footer content
+  if (footerY + estimatedFooterHeight > pageHeight - margin) {
+    doc.addPage();
+    footerY = margin;
+  }
 
   // Add remarks section if remarks exist (just above terms & conditions)
   if (quotation && quotation.remarks && quotation.remarks.trim() !== '') {
     // Calculate space needed for remarks
     const maxWidth = pageWidth - margin * 2;
     const remarksLines = doc.splitTextToSize(quotation.remarks, maxWidth);
-    const remarksHeight = remarksLines.length * 4 + 10; // 4 for line height + 10 for spacing
-
-    // Adjust footer position to accommodate remarks
-    footerY = pageHeight - 60 - remarksHeight;
 
     // Add Remarks section
     doc.setFontSize(10);
@@ -625,13 +659,11 @@ const addPDFFooter = (doc, pageWidth, pageHeight, margin, quotation) => {
     quotation.price_type === PRICE_TYPES.INCLUSIVE_TAX ? 'GST Inclusive' : 'GST Exclusive';
 
   const terms = [
-    '1. The selected products may be available as per stock available at the',
-    '   time of order placed by the customer.',
+    '1. The selected products may be available as per stock available at the time of order placed by the customer.',
     '2. This Quotation is Valid for 10 Days.',
     '3. 100% Advance payment at the time of order.',
     '4. No Warranty/Guarantee on decorative products.',
-    '5. Guarantee/Warranty/Services available as per the Manufacturers',
-    '   Policy.',
+    '5. Guarantee/Warranty/Services available as per the Manufacturers Policy.',
     `6. ${gstTerm}`,
     '7. Site Delivery & Labour charges extra which applies GST.',
     '8. Order once placed will not be cancelled, replaced or exchanged.',
@@ -640,21 +672,27 @@ const addPDFFooter = (doc, pageWidth, pageHeight, margin, quotation) => {
     '11. Subject to Ahmedabad Jurisdiction.',
   ];
 
+  // Use wider width for terms to fit more content on one line
+  const termsMaxWidth = pageWidth - margin * 2 - 5; // Use almost full page width with small margins
   let termY = footerY + 5;
+
   terms.forEach(term => {
-    doc.text(term, margin, termY);
-    termY += 4;
+    const termLines = doc.splitTextToSize(term, termsMaxWidth);
+    termLines.forEach(line => {
+      doc.text(line, margin, termY);
+      termY += 4;
+    });
   });
 
-  // Add company footer on the last page (bottom right)
+  // Add company footer on the last page (centered)
   const currentYear = new Date().getFullYear();
   const companyFooterText = `Maruti Laminates | ${currentYear} | GST: ${COMPANY_INFO.GST_NUMBER}`;
 
-  // Position at bottom right of the page
-  doc.setFontSize(8);
+  // Position at bottom center of the page
+  doc.setFontSize(10); // Increased from 8 to 10
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100); // Gray color
-  doc.text(companyFooterText, pageWidth - margin, pageHeight - 5, { align: 'right' });
+  doc.text(companyFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' });
 };
 
 /**

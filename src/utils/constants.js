@@ -172,7 +172,7 @@ const TABLE_NAMES = {
 
 // Company Information
 const COMPANY_INFO = {
-  GST_NUMBER: '24AACCM7906R1ZP', // Maruti Laminates GST number
+  GST_NUMBER: '24AAFCM3792F1ZG', // Maruti Laminates GST number
 };
 
 module.exports = {
