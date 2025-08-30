@@ -1,4 +1,4 @@
-const { Customer, Reference } = require('../models');
+const { Customer, Reference, Quotation } = require('../models');
 const { Op } = require('sequelize');
 const { HTTP_STATUS, ERROR_MESSAGES, SUCCESS_MESSAGES, PAGINATION } = require('../utils/constants');
 
@@ -267,19 +267,39 @@ const updateCustomer = async (req, res) => {
 };
 
 /**
- * Delete customer (Admin only)
+ * Delete customer (Admin only - check for dependent quotations)
  */
 const deleteCustomer = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find customer
-    const customer = await Customer.findByPk(id);
+    // Find customer with quotations
+    const customer = await Customer.findByPk(id, {
+      include: [
+        {
+          model: Quotation,
+          as: 'quotations',
+          attributes: ['id'],
+          required: false,
+        },
+      ],
+    });
 
     if (!customer) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
         message: 'Customer not found',
+      });
+    }
+
+    // Check if customer has associated quotations
+    if (customer.quotations && customer.quotations.length > 0) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: 'Cannot delete customer. It has associated quotations',
+        data: {
+          quotationCount: customer.quotations.length,
+        },
       });
     }
 
