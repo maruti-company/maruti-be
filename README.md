@@ -232,6 +232,10 @@ The server will start on `http://localhost:3000`
 ### Public Quotation Access (No Authentication Required)
 - `GET /api/v1/quotations/public/:id` - Get public quotation details (valid for 3 months after sharing)
 
+### Test Data Seeding (Admin Only)
+- `POST /api/v1/seed` - Seed specified number of test records for users, references, customers, products, locations, quotations, and items (requires count in request body)
+- `DELETE /api/v1/seed` - Clean up all test data (removes all test records, S3 images, and PDFs)
+
 ### Health Monitoring
 - `GET /health` - Basic health check
 - `GET /health/detailed` - Detailed system health
@@ -300,6 +304,22 @@ Manage customer quotations with items and images:
 - **Public Access**: Shareable links valid for 3 months after sharing, no authentication required
 - **Image Storage**: AWS S3 integration with organized folder structure (`quotations/{quotation_id}/items/`), path storage in database
 - **PDF Generation**: Automatic PDF generation using jsPDF, professional layout with Maruti Laminates branding, S3 storage in `quotations/{quotation_id}/` folder
+
+### Test Data Seeding
+For testing and development purposes, seed large datasets:
+- **Dynamic Data Volume**: Create any number of records (1-1000) for users, references, customers, products, locations, quotations, and items
+- **Request Body**: Requires `{ "count": number }` in POST request body (e.g., `{ "count": 250 }` creates comprehensive test data)
+- **Validation**: Count must be between 1 and 1000 to prevent database overload
+- **Quotations & Items**: Each quotation contains 1-5 random items with realistic data (rates, discounts, quantities)
+- **S3 Image Integration**: Every item gets the maruti_letter_head.jfif uploaded to S3 following normal flow
+- **PDF Generation**: Professional PDFs generated for each quotation and uploaded to S3
+- **Timestamp Differentiation**: All test data includes timestamps in names/emails to differentiate from real data
+- **Admin Access Only**: Seeding endpoints are restricted to admin users only
+- **Smart Relationships**: Test customers are randomly assigned to test references (60% assignment rate)
+- **User Mix**: Test users include both admin (first 10%) and employee roles with minimum 1 admin
+- **Cleanup Support**: Complete cleanup of all test data, S3 images, and PDFs with a single DELETE request
+- **Transaction Safety**: All operations are wrapped in database transactions for data integrity
+- **Production Safe**: Test data is clearly marked and identifiable for safe cleanup
 
 ## 📚 API Documentation
 
