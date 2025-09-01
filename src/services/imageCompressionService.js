@@ -63,11 +63,15 @@ const compressImage = async (imageBuffer, options = {}) => {
       }
     }
 
-    // Compress and resize image
-    let sharpInstance = sharp(imageBuffer).resize(width, height, {
-      fit: 'inside',
-      withoutEnlargement: true,
-    });
+    // Compress and resize image with orientation preservation
+    let sharpInstance = sharp(imageBuffer, {
+      failOnError: false, // Don't fail on corrupt images
+    })
+      .rotate() // Auto-rotate based on EXIF orientation
+      .resize(width, height, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      });
 
     // Apply format-specific compression
     switch (format) {
@@ -149,8 +153,10 @@ const compressImageQualityOnly = async (imageBuffer, options = {}) => {
     const metadata = await sharp(imageBuffer).metadata();
     const { width, height } = metadata;
 
-    // Compress image with original dimensions (no resizing)
-    let sharpInstance = sharp(imageBuffer);
+    // Compress image with original dimensions and orientation preservation
+    let sharpInstance = sharp(imageBuffer, {
+      failOnError: false, // Don't fail on corrupt images
+    }).rotate(); // Auto-rotate based on EXIF orientation
 
     // Apply format-specific compression
     switch (format) {
