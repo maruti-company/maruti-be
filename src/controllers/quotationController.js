@@ -17,7 +17,11 @@ const {
   QUOTATION_CONFIG,
   IMAGE_CONFIG,
 } = require('../utils/constants');
-const { uploadMultipleImages, deleteMultipleImages } = require('../services/s3Service');
+const {
+  uploadMultipleImages,
+  uploadMultipleImagesForEdit,
+  deleteMultipleImages,
+} = require('../services/s3Service');
 const { generateAndUploadQuotationPDF, deleteQuotationPDF } = require('../services/pdfService');
 
 /**
@@ -553,10 +557,10 @@ const updateQuotation = async (req, res) => {
             );
           }
 
-          // Upload images for this item
+          // Upload images for this item (use edit function to avoid re-compressing already compressed images)
           let imagePaths = [];
           if (itemFiles.length > 0) {
-            imagePaths = await uploadMultipleImages(itemFiles, id);
+            imagePaths = await uploadMultipleImagesForEdit(itemFiles, id);
           }
 
           // Use product unit if item unit is not provided
@@ -756,51 +760,14 @@ const deleteQuotation = async (req, res) => {
 };
 
 /**
- * Update last shared date (with PDF regeneration)
+ * Update last shared date
  */
 const updateLastSharedDate = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch quotation with all required data for PDF generation
-    const quotation = await Quotation.findByPk(id, {
-      include: [
-        {
-          model: Customer,
-          as: 'customer',
-          attributes: ['id', 'name', 'mobile_no', 'address', 'gst_number'],
-          include: [
-            {
-              model: Reference,
-              as: 'reference',
-              attributes: ['id', 'name', 'category', 'mobile_no'],
-            },
-          ],
-        },
-        {
-          model: User,
-          as: 'creator',
-          attributes: ['id', 'user_name', 'email'],
-        },
-        {
-          model: Item,
-          as: 'items',
-          include: [
-            {
-              model: Product,
-              as: 'product',
-              attributes: ['id', 'name', 'description', 'unit'],
-            },
-            {
-              model: Location,
-              as: 'location',
-              attributes: ['id', 'name'],
-            },
-          ],
-        },
-      ],
-      order: [[{ model: Item, as: 'items' }, 'createdAt', 'ASC']],
-    });
+    // Fetch quotation
+    const quotation = await Quotation.findByPk(id);
 
     if (!quotation) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -809,54 +776,20 @@ const updateLastSharedDate = async (req, res) => {
       });
     }
 
-    // Step 1: Regenerate PDF first
-    try {
-      // Delete old PDF if exists
-      if (quotation.pdf_path) {
-        await deleteQuotationPDF(quotation.pdf_path);
-      }
+    // Update last shared date
+    const currentDateTime = new Date();
+    await quotation.update({ last_shared_date: currentDateTime });
 
-      // Generate and upload new PDF
-      const newPdfPath = await generateAndUploadQuotationPDF(quotation, id);
-
-      // Step 2: Update quotation with new PDF path and shared date
-      const currentDateTime = new Date();
-      await quotation.update({ 
-        pdf_path: newPdfPath,
-        last_shared_date: currentDateTime 
-      });
-
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: 'PDF regenerated and last shared date updated successfully',
-        data: {
-          quotation: {
-            id: quotation.id,
-            pdf_path: newPdfPath,
-            last_shared_date: currentDateTime,
-          },
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Last shared date updated successfully',
+      data: {
+        quotation: {
+          id: quotation.id,
+          last_shared_date: currentDateTime,
         },
-      });
-    } catch (pdfError) {
-      console.error('PDF regeneration failed during share update:', pdfError);
-      
-      // If PDF regeneration fails, still update the shared date
-      const currentDateTime = new Date();
-      await quotation.update({ last_shared_date: currentDateTime });
-
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: 'Last shared date updated successfully (PDF regeneration failed)',
-        warning: 'PDF could not be regenerated, but share date was updated',
-        data: {
-          quotation: {
-            id: quotation.id,
-            pdf_path: quotation.pdf_path,
-            last_shared_date: currentDateTime,
-          },
-        },
-      });
-    }
+      },
+    });
   } catch (error) {
     console.error('Update last shared date error:', error);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
