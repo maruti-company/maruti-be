@@ -151,8 +151,8 @@ const IMAGE_CONFIG = {
 };
 
 const FILE_CONFIG = {
-  MAX_FILE_SIZE_MB: 10,
-  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024, // 10MB in bytes
+  MAX_FILE_SIZE_MB: 75,
+  MAX_FILE_SIZE_BYTES: 75 * 1024 * 1024, // 10MB in bytes
   ALLOWED_MIME_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'],
 };
 
