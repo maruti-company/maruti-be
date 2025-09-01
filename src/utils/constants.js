@@ -148,6 +148,14 @@ const IMAGE_CONFIG = {
   MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024, // 5MB in bytes
   ALLOWED_MIME_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
   MAX_FILES_PER_QUOTATION: 50,
+  // Image compression settings
+  COMPRESSION: {
+    ENABLED: true,
+    QUALITY: 30, // JPEG quality (1-100) - only affects file size, not dimensions
+    PRESERVE_DIMENSIONS: true, // Keep original width and height
+    OUTPUT_FORMAT: 'jpeg', // Output format after compression
+    MIN_SIZE_TO_COMPRESS: 100 * 1024, // Only compress images larger than 100KB
+  },
 };
 
 const FILE_CONFIG = {
