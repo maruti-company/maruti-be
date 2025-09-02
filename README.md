@@ -298,12 +298,23 @@ Manage locations where products are used:
 Manage customer quotations with items and images:
 - **Fields**: Quotation Date (required), Customer ID (required), Last Shared Date (optional), Remarks (optional, max 1000 chars), Price Type (Inclusive Tax/Exclusive Tax, default: Inclusive Tax), PDF Path (auto-generated), Created By (auto-filled from logged-in user)
 - **Items**: Product ID (required), Description (optional), Rate (required), Discount (optional), Unit (auto-filled from product), Images (optional, max 1 per item), Location ID (optional), Quantity (positive integer, default: 1)
-- **Features**: Pagination, customer filtering, date range filtering, image upload to S3, automatic unit assignment, **PDF generation and storage**, **public access links**
+- **Features**: Pagination, customer filtering, date range filtering, image upload to S3 with **automatic compression** (create) and **smart re-compression avoidance** (edit), automatic unit assignment, **PDF generation and storage**, **public access links**
 - **Validation**: Rate/discount as positive decimals, max 1 image per item (5MB each), proper foreign key relationships, quantity as positive integer
 - **Business Logic**: Deleting quotation deletes all items and PDF, employees cannot delete quotations, automatic S3 cleanup, user tracking (created_by field automatically set to logged-in user on create/update, becomes null if user is deleted)
 - **Public Access**: Shareable links valid for 3 months after sharing, no authentication required
-- **Image Storage**: AWS S3 integration with organized folder structure (`quotations/{quotation_id}/items/`), path storage in database
+- **Image Storage**: AWS S3 integration with organized folder structure (`quotations/{quotation_id}/items/`), path storage in database, **automatic image compression** for optimized storage and bandwidth
 - **PDF Generation**: Automatic PDF generation using jsPDF, professional layout with Maruti Laminates branding, S3 storage in `quotations/{quotation_id}/` folder
+
+### Image Compression
+Automatic image compression for optimized storage and bandwidth:
+- **Compression Settings**: Configurable quality (75% default), preserves original dimensions, JPEG output format
+- **Quality-Only Compression**: Reduces file size (KB) without changing image dimensions (pixels)
+- **Smart Compression**: Only compresses images larger than 100KB, preserves original if compression fails
+- **Compression Detection**: Images are marked with "_compressed" suffix to avoid re-compression in edit operations
+- **Edit Optimization**: Edit quotation API automatically detects already compressed images and skips re-compression
+- **Supported Formats**: JPEG, PNG, WebP input formats, always outputs JPEG for consistency
+- **Storage Optimization**: Reduces file sizes by 20-80% while maintaining original image dimensions
+- **Configuration**: Adjustable via `IMAGE_CONFIG.COMPRESSION` constants in `src/utils/constants.js`
 
 ### Test Data Seeding
 For testing and development purposes, seed large datasets:
@@ -311,7 +322,7 @@ For testing and development purposes, seed large datasets:
 - **Request Body**: Requires `{ "count": number }` in POST request body (e.g., `{ "count": 250 }` creates comprehensive test data)
 - **Validation**: Count must be between 1 and 1000 to prevent database overload
 - **Quotations & Items**: Each quotation contains 1-5 random items with realistic data (rates, discounts, quantities)
-- **S3 Image Integration**: Every item gets the maruti_letter_head.jfif uploaded to S3 following normal flow
+- **S3 Image Integration**: Every item gets the maruti_letter_head.jfif uploaded to S3 with automatic compression
 - **PDF Generation**: Professional PDFs generated for each quotation and uploaded to S3
 - **Timestamp Differentiation**: All test data includes timestamps in names/emails to differentiate from real data
 - **Admin Access Only**: Seeding endpoints are restricted to admin users only

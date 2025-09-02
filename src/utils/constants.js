@@ -148,6 +148,14 @@ const IMAGE_CONFIG = {
   MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024, // 5MB in bytes
   ALLOWED_MIME_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
   MAX_FILES_PER_QUOTATION: 50,
+  // Image compression settings
+  COMPRESSION: {
+    ENABLED: true,
+    QUALITY: 30, // JPEG quality (1-100) - only affects file size, not dimensions
+    PRESERVE_DIMENSIONS: true, // Keep original width and height
+    OUTPUT_FORMAT: 'jpeg', // Output format after compression
+    MIN_SIZE_TO_COMPRESS: 100 * 1024, // Only compress images larger than 100KB
+  },
 };
 
 const FILE_CONFIG = {
@@ -159,6 +167,16 @@ const FILE_CONFIG = {
 // Quotation Configuration
 const QUOTATION_CONFIG = {
   PUBLIC_ACCESS_EXPIRY_MONTHS: 3, // Public quotation links expire after 3 months
+  // Edit access time restrictions for employees (Indian timezone)
+  EDIT_ACCESS: {
+    START_HOUR: 9, // 9:00 AM
+    END_HOUR: 18, // 6:00 PM (18:00)
+    TIMEZONE: 'Asia/Kolkata', // Indian Standard Time
+    TIME_MESSAGE:
+      'Edit quotation is only accessible between 9:00 AM to 6:00 PM IST for employees. Admins can access anytime.',
+    DATE_MESSAGE:
+      'Employees can only edit quotations created on the current date (IST). Admins can edit any quotation.',
+  },
 };
 
 const TABLE_NAMES = {

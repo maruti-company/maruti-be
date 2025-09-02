@@ -12,6 +12,7 @@ const {
 } = require('../controllers/quotationController');
 const { validateBody, validateParams, validateQuery } = require('../middleware/validation');
 const { authenticate, requireAdmin } = require('../middleware/auth');
+const { checkEditQuotationAccess } = require('../middleware/timeAccessControl');
 const {
   createQuotationValidator,
   updateQuotationValidator,
@@ -65,6 +66,7 @@ router.put(
   upload.any(),
   validateParams(quotationIdValidator),
   validateBody(updateQuotationValidator),
+  checkEditQuotationAccess,
   updateQuotation
 );
 
