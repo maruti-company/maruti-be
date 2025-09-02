@@ -53,18 +53,16 @@ const checkEditQuotationAccess = async (req, res, next) => {
 
     // Get quotation creation date in Indian timezone
     const quotationCreatedAt = new Date(quotation.createdAt);
-    const quotationCreatedAtIndian = new Date(
-      quotationCreatedAt.toLocaleString('en-US', {
-        timeZone: QUOTATION_CONFIG.EDIT_ACCESS.TIMEZONE,
-      })
-    );
 
-    // Get current date in Indian timezone (without time)
-    const currentIndianDate = new Date(
-      indianTime.getFullYear(),
-      indianTime.getMonth(),
-      indianTime.getDate()
-    );
+    // Get current date in Indian timezone using proper date formatting
+    const currentIndianDateStr = indianTime.toLocaleDateString('en-CA', {
+      timeZone: QUOTATION_CONFIG.EDIT_ACCESS.TIMEZONE,
+    }); // en-CA format gives YYYY-MM-DD
+
+    // Get quotation creation date in Indian timezone using proper date formatting
+    const quotationCreatedDateStr = quotationCreatedAt.toLocaleDateString('en-CA', {
+      timeZone: QUOTATION_CONFIG.EDIT_ACCESS.TIMEZONE,
+    }); // en-CA format gives YYYY-MM-DD
 
     // Get quotation creation date in Indian timezone (without time)
     const quotationCreatedDate = new Date(
@@ -73,18 +71,14 @@ const checkEditQuotationAccess = async (req, res, next) => {
       quotationCreatedAtIndian.getDate()
     );
 
-    // Check if quotation was created on the current Indian date
-    if (quotationCreatedDate.getTime() !== currentIndianDate.getTime()) {
+    // Compare date strings directly (YYYY-MM-DD format)
+    if (quotationCreatedDateStr !== currentIndianDateStr) {
       return res.status(400).json({
         success: false,
         message: QUOTATION_CONFIG.EDIT_ACCESS.DATE_MESSAGE,
         error: 'DATE_ACCESS_RESTRICTED',
-        currentDate: currentIndianDate.toLocaleDateString('en-US', {
-          timeZone: QUOTATION_CONFIG.EDIT_ACCESS.TIMEZONE,
-        }),
-        quotationCreatedDate: quotationCreatedDate.toLocaleDateString('en-US', {
-          timeZone: QUOTATION_CONFIG.EDIT_ACCESS.TIMEZONE,
-        }),
+        currentDate: currentIndianDateStr,
+        quotationCreatedDate: quotationCreatedDateStr,
         allowedAccess: 'Current date quotations only',
       });
     }
