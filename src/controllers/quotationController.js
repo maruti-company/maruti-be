@@ -488,7 +488,6 @@ const updateQuotation = async (req, res) => {
       if (last_shared_date) updateData.last_shared_date = last_shared_date;
       if (remarks !== undefined) updateData.remarks = remarks;
       if (price_type) updateData.price_type = price_type;
-      updateData.created_by = req.user.id; // Update created_by with current user
 
       if (Object.keys(updateData).length > 0) {
         await existingQuotation.update(updateData, { transaction: t });

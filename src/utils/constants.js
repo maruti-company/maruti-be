@@ -167,6 +167,16 @@ const FILE_CONFIG = {
 // Quotation Configuration
 const QUOTATION_CONFIG = {
   PUBLIC_ACCESS_EXPIRY_MONTHS: 3, // Public quotation links expire after 3 months
+  // Edit access time restrictions for employees (Indian timezone)
+  EDIT_ACCESS: {
+    START_HOUR: 9, // 9:00 AM
+    END_HOUR: 18, // 6:00 PM (18:00)
+    TIMEZONE: 'Asia/Kolkata', // Indian Standard Time
+    TIME_MESSAGE:
+      'Edit quotation is only accessible between 9:00 AM to 6:00 PM IST for employees. Admins can access anytime.',
+    DATE_MESSAGE:
+      'Employees can only edit quotations created on the current date (IST). Admins can edit any quotation.',
+  },
 };
 
 const TABLE_NAMES = {
